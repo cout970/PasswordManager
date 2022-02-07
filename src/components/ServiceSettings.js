@@ -40,8 +40,8 @@ export function ServiceSettings({service, alphabets, onChange}) {
               value={service.alphabet}
               onChange={e => update({alphabet: e.target.value})}
       >
-        {Object.entries(alphabets).map(([key, value]) => {
-          return <option key={key} value={key}>{value.name} "{value.summary}"</option>;
+        {alphabets.map(value => {
+          return <option key={'alphabet-' + value.id} value={value.id}>{value.name} "{value.summary}"</option>;
         })}
       </select>
     </div>
@@ -52,7 +52,14 @@ export function ServiceSettings({service, alphabets, onChange}) {
              onChange={e => update({allGroups: e.target.checked})}
       />
     </div>
+    <div className="row">
+      <label htmlFor={service.id + '-useRandomSeed'}>Use random-seed algorithm</label>
+      <input type="checkbox" id={service.id + '-useRandomSeed'}
+             checked={service.useRandomSeed} name="useRandomSeed"
+             onChange={e => update({useRandomSeed: e.target.checked})}
+      />
+    </div>
 
-    <button className="remove-btn" onClick={removeService}>Remove service</button>
+    <button className="btn remove-btn" onClick={removeService}>Remove service</button>
   </div>;
 }

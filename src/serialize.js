@@ -11,13 +11,13 @@ export function deserializeServices(json) {
 export function serializeAlphabets(alphabets) {
   if (!alphabets) return null;
 
-  let entries = Object.entries(alphabets);
-  let alphabetsSerializable = entries.map(([key, value]) => {
-    return [key, {
+  let entries = Array.isArray(alphabets) ? alphabets : Object.values(alphabets);
+  let alphabetsSerializable = entries.map(value => {
+    return {
       ...value,
       summary: bin2hex(value.summary),
       chars: bin2hex(value.chars),
-    }];
+    };
   });
 
   return JSON.stringify(alphabetsSerializable);
@@ -31,12 +31,11 @@ export function deserializeAlphabets(json) {
     return null;
   }
 
-  let entries = alphabetsSerializable.map(([key, value]) => {
-    return [key, {
+  return alphabetsSerializable.map(value => {
+    return {
       ...value,
       summary: hex2bin(value.summary),
       chars: hex2bin(value.chars),
-    }];
+    };
   });
-  return Object.fromEntries(entries);
 }

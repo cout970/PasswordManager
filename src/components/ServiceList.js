@@ -1,8 +1,11 @@
 import {randId} from '../util';
 import {getAndIncrementId} from '../storage';
 import {Service} from './Service';
+import {useState} from 'react';
 
 export function ServiceList({masterPassword, alphabets, services, setServices}) {
+  const [search, setSearch] = useState('');
+
   const addService = () => {
     setServices([...services, createService()]);
   };
@@ -15,9 +18,11 @@ export function ServiceList({masterPassword, alphabets, services, setServices}) 
     }
   };
 
-  let content = <div>There are no stored services</div>;
-  if (services.length) {
-    content = services.map(s =>
+  let content = <div className='no-results'>There are no matching services</div>;
+  const displayServices = services.filter(s => matches(s.name, search));
+
+  if (displayServices.length) {
+    content = displayServices.map(s =>
       <Service
         key={'service-' + s.id}
         service={s}
@@ -30,9 +35,16 @@ export function ServiceList({masterPassword, alphabets, services, setServices}) 
 
   return <div className="service-list">
     <h2>Services</h2>
-    <button className="add-service" onClick={addService}>Add service</button>
+    <div className='list-header'>
+      <button className="btn add-service" onClick={addService}>Add service</button>
+      <input className="search" type="text" placeholder="Search by name" value={search} onChange={e => setSearch(e.target.value)}/>
+    </div>
     {content}
   </div>;
+}
+
+function matches(text, search) {
+  return text.includes(search);
 }
 
 /**
@@ -49,7 +61,9 @@ export function createService() {
     passLen: 16,
     alphabet: 'default',
     allGroups: true,
+    useRandomSeed: false,
   };
+
 }
 
 /**
@@ -64,15 +78,16 @@ export function validateService(service_input) {
     service.id = randId();
   }
 
-  if (!service.name) {
+  if (typeof service.name !== 'string') {
     let index = getAndIncrementId('service-index');
     service.name = 'Service #' + index;
   }
 
-  if (!service.code) {
+  if (typeof service.code !== 'string') {
     service.code = service.name
       .toLowerCase()
       .replaceAll(' ', '-')
+      // eslint-disable-next-line no-useless-escape
       .replaceAll(/[^a-z0-9\-]/, '-');
   }
 
@@ -86,6 +101,10 @@ export function validateService(service_input) {
 
   if (service.allGroups !== true && service.allGroups !== false) {
     service.allGroups = false;
+  }
+
+  if (service.useRandomSeed !== true && service.useRandomSeed !== false) {
+    service.useRandomSeed = false;
   }
   return service;
 }

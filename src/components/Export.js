@@ -1,47 +1,66 @@
 import {useState} from 'react';
-import {decrypt, encrypt} from '../util';
+import {decrypt, downloadAsFile, encrypt, sha512} from '../util';
 import {deserializeAlphabets, deserializeServices, serializeAlphabets, serializeServices} from '../serialize';
 
 export default function Export({masterPassword, alphabets, services, onDataImport}) {
-  const [open, setOpen] = useState(false);
   const [text, setText] = useState('');
   const [exportResult, setExportResult] = useState('');
 
-  const exportData = () => {
-    let data = [serializeAlphabets(alphabets), serializeServices(services)];
-    data = JSON.stringify(data);
-    data = encrypt(data, masterPassword);
-    setText(data);
+  const exportData = (target) => {
+    let date = (new Date()).toISOString();
+    let data = {
+      exportDate: date,
+      masterPasswordHash: sha512(masterPassword),
+      alphabets: encrypt(serializeAlphabets(alphabets), masterPassword),
+      services: encrypt(serializeServices(services), masterPassword),
+    };
+    data = JSON.stringify(data, null, 2);
+    if (target === 'file') {
+      downloadAsFile(`settings-${date}.txt`, data);
+    } else {
+      setText(data);
+    }
     setExportResult('Successfully exported settings');
   };
 
   const importData = () => {
-    let data = decrypt(text, masterPassword);
-    data = data ? JSON.parse(data) : null;
+    try {
+      let data = JSON.parse(text);
 
-    if (!data) {
-      setExportResult('Invalid data');
-      return;
-    }
+      if (!data) {
+        setExportResult('Invalid data');
+        return;
+      }
 
-    let items = {
-      'alphabets': deserializeAlphabets(data[0]),
-      'services': deserializeServices(data[1]),
-    };
+      let masterPasswordHash = data.masterPasswordHash;
+      if (masterPasswordHash !== sha512(masterPassword)) {
+        setExportResult('Incorrect master password');
+        return;
+      }
 
-    if (window.confirm('Are you sure you want to override the current settings with the new settings?')) {
-      onDataImport(items);
-      setExportResult('Successfully importer settings');
-    } else {
-      setExportResult('Importation cancelled');
+      let alphabets = decrypt(data.alphabets, masterPassword);
+      let services = decrypt(data.services, masterPassword);
+
+      let items = {
+        'alphabets': deserializeAlphabets(alphabets),
+        'services': deserializeServices(services),
+      };
+
+      if (window.confirm('Are you sure you want to override the current settings with the new settings?')) {
+        onDataImport(items);
+        setExportResult('Successfully importer settings');
+      } else {
+        setExportResult('Importation cancelled');
+      }
+    } catch (e) {
+      console.error(e);
+      setExportResult('Error: ' + e.message);
     }
   };
 
   return <div className="export">
-    <button onClick={_ => setOpen(!open)}>Export/Import</button>
-
-    {open ? <div className="export-import">
-
+    <h2>Export/Import</h2>
+    <div className="export-import">
       {exportResult ? <div className="export-result">{exportResult}</div> : ''}
 
       <div className="textarea-wrapper">
@@ -54,11 +73,23 @@ export default function Export({masterPassword, alphabets, services, onDataImpor
       </div>
       <small>Export data is encrypted with AES using the master password</small>
       <div className="actions">
-        <button onClick={exportData} title="Export the current config into the textarea">Export</button>
-        <button onClick={importData} title="Override current config from the textarea"
-                disabled={!text || !masterPassword}>Import
+        <button className="btn"
+                onClick={importData}
+                title="Override current config from the textarea"
+                disabled={!text || !masterPassword}>
+          Import
+        </button>
+        <button className="btn"
+                onClick={exportData.bind(null, 'text')}
+                title="Export the current config into the textarea">
+          Export to textarea
+        </button>
+        <button className="btn"
+                onClick={exportData.bind(null, 'file')}
+                title="Export and download the current config">
+          Export to file
         </button>
       </div>
-    </div> : ''}
+    </div>
   </div>;
 }

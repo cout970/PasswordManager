@@ -9,7 +9,7 @@ export function MasterPassword({value, onChange}) {
                type="password"
                placeholder="master password"
                name="password"
-               autoComplete="currentPassword"
+               autoComplete="current-password"
                value={value}
                onChange={e => onChange(e.target.value)}
         />

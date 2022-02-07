@@ -1,6 +1,7 @@
 import js_sha512 from 'js-sha512';
 import AES from 'crypto-js/aes';
 import Utf8 from 'crypto-js/enc-utf8';
+import {create} from 'random-seed';
 
 /**
  * Hash Sha512
@@ -44,6 +45,7 @@ export function getCharacterGroups(alphabet) {
     types.push('special');
   }
 
+  // eslint-disable-next-line no-useless-escape
   if (/[^A-Za-z0-9!@#$%*()_+=\-?\[\]\{\}",./<>|]/.test(alphabet)) {
     types.push('unicode');
   }
@@ -68,9 +70,11 @@ export function containsCharacterGroup(text, type) {
     return /[0-9]/.test(text);
   }
   if (type === 'special') {
+    // eslint-disable-next-line no-useless-escape
     return /[!@#$%*()_+=\-?\[\]\{\}",./<>|]/.test(text);
   }
   if (type === 'unicode') {
+    // eslint-disable-next-line no-useless-escape
     return /[^A-Za-z0-9!@#$%*()_+=\-?\[\]\{\}",./<>|]/.test(text);
   }
   return false;
@@ -95,15 +99,25 @@ export function getPassword(seed, alphabet) {
  * @param password {string}
  * @param service {string}
  * @param length {number}
+ * @param useRandomSeed {boolean} use legacy generation algorithm
  * @returns {number[]}
  */
-export function getPasswordSeed(password, service, length) {
+export function getPasswordSeed(password, service, length, useRandomSeed) {
   let passSeed = [];
 
-  const randSeed = sha512(sha512(password) + sha512(service));
-  const random = randomInit(randSeed);
-  for (let i = 0; i < length; i++) {
-    passSeed.push(nextRandom(random));
+  if (useRandomSeed) {
+    const seed = sha512(password + sha512(service));
+    const random = create(seed);
+
+    for (let i = 0; i < length; i++) {
+      passSeed.push(random(100));
+    }
+  } else {
+    const randSeed = sha512(sha512(password) + sha512(service));
+    const random = randomInit(randSeed);
+    for (let i = 0; i < length; i++) {
+      passSeed.push(nextRandom(random));
+    }
   }
 
   return passSeed;
@@ -227,10 +241,11 @@ export function bin2hex(text) {
  * @param len {number}
  * @param alphabet {string}
  * @param allGroups {boolean}
+ * @param useRandomSeed {boolean}
  * @returns {string}
  */
-export function generatePassword(masterPassword, code, len, alphabet, allGroups) {
-  const seed = getPasswordSeed(masterPassword, code, len);
+export function generatePassword(masterPassword, code, len, alphabet, allGroups, useRandomSeed) {
+  const seed = getPasswordSeed(masterPassword, code, len, useRandomSeed);
   let pass = getPassword(seed, alphabet);
 
   if (allGroups) {
@@ -252,12 +267,22 @@ export function generatePassword(masterPassword, code, len, alphabet, allGroups)
         break;
       }
 
-      console.log(index);
-      const seed = getPasswordSeed(masterPassword, index + ':' + code, len);
+      const seed = getPasswordSeed(masterPassword, index + ':' + code, len, useRandomSeed);
       pass = getPassword(seed, alphabet);
       index++;
     }
   }
 
   return pass;
+}
+
+export function downloadAsFile(filename, text) {
+  const element = document.createElement('a');
+  element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+  element.setAttribute('download', filename);
+
+  element.style.display = 'none';
+  document.body.appendChild(element);
+  element.click();
+  document.body.removeChild(element);
 }

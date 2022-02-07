@@ -12,11 +12,11 @@ export function Service({service, masterPassword, alphabets, onChange}) {
   const [copyAnim, setCopyAnim] = useState(false);
   const [editing, setEditing] = useState(false);
 
-  const alphabet = alphabets[service.alphabet].chars;
+  const alphabet = findAlphabetChars(service.alphabet, alphabets);
   let pass = '';
 
   if (masterPassword) {
-    pass = generatePassword(masterPassword, service.code, service.passLen, alphabet, service.allGroups);
+    pass = generatePassword(masterPassword, service.code, service.passLen, alphabet, service.allGroups, service.useRandomSeed);
   }
 
   const copy = () => {
@@ -32,26 +32,36 @@ export function Service({service, masterPassword, alphabets, onChange}) {
     <div className="first-row">
       <div className="service-name">{service.name}</div>
 
-      <button className="copy-btn icon-btn" onClick={copy}>
+      <button className="copy-btn icon-btn" onClick={copy} title='Copy to clipboard'>
         {copyAnim
-          ? <ClipboardCheckIcon key="clipboard-check-icon"/>
+          ? <ClipboardCheckIcon key="clipboard-check-icon" className='checked'/>
           : <ClipboardIcon key="clipboard-icon"/>
         }
       </button>
 
       <input className="pass-input" type={show ? 'text' : 'password'} readOnly={true} value={pass}/>
 
-      <button className="show-btn icon-btn" onClick={_ => setShow(!show)}>
+      <button className="show-btn icon-btn" onClick={_ => setShow(!show)} title='Show/Hide password'>
         {show
           ? <HideIcon key="hide-icon"/>
           : <ShowIcon key="show-icon"/>}
       </button>
 
-      <button className="edit-btn icon-btn" onClick={_ => setEditing(!editing)}>
+      <button className="edit-btn icon-btn" onClick={_ => setEditing(!editing)} title='Edit'>
         <GearIcon key="gear-icon"/>
       </button>
     </div>
 
     {editing ? <ServiceSettings key="settings" service={service} alphabets={alphabets} onChange={onChange}/> : ''}
   </div>;
+}
+
+function findAlphabetChars(alphabetName, alphabets) {
+  for (let alphabet of alphabets) {
+    if (alphabet.id === alphabetName) {
+      return alphabet.chars;
+    }
+  }
+
+  return alphabets[0].chars;
 }
