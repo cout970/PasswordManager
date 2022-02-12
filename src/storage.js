@@ -1,4 +1,4 @@
-import {hex2bin} from './util';
+import {decrypt, encrypt, hex2bin, randId} from './util';
 import {deserializeAlphabets, deserializeServices, serializeAlphabets, serializeServices} from './serialize';
 
 export function loadAlphabets() {
@@ -15,9 +15,16 @@ export function loadAlphabets() {
       },
       {
         id: 'legacy',
-        name: 'Legacy',
+        name: 'Legacy 1',
         summary: 'A-Z a-z 0-9 without E/e',
         chars: 'ABCDFGHIJKLMNOPQRSTUVWXYZabdfghijklmnopqrstuvwxyz1234567890',
+      },
+      {
+        id: 'bug',
+        name: 'Legacy 2',
+        summary: 'Default plus ñÑ€¡¿ç and broken utf-8 to windows-1252 conversion',
+        // 'ABCDEFGHIJKLMNÃ‘OPQRSTUVWXYZabcdefghijklmnÃ±opqrstuvwxyz1234567890!@#$%*()_+=-â‚¬Â¡?Â¿[]{}",./Ã§<>| '
+        chars: hex2bin('004100420043004400450046004700480049004a004b004c004d004e00c32018004f0050005100520053005400550056005700580059005a006100620063006400650066006700680069006a006b006c006d006e00c300b1006f0070007100720073007400750076007700780079007a003100320033003400350036003700380039003000210040002300240025002a00280029005f002b003d002d00e2201a00ac00c200a1003f00c200bf005b005d007b007d0022002c002e002f00c300a7003c003e007c0020'),
       },
       {
         id: 'crazy',
@@ -38,13 +45,6 @@ export function loadAlphabets() {
         summary: '0-9',
         chars: '1234567890',
       },
-      {
-        id: 'bug',
-        name: 'Compatibility with older versions',
-        summary: 'Default plus ñ Ñ € ¡ ¿ ç',
-        // 'ABCDEFGHIJKLMNÃ‘OPQRSTUVWXYZabcdefghijklmnÃ±opqrstuvwxyz1234567890!@#$%*()_+=-â‚¬Â¡?Â¿[]{}",./Ã§<>| '
-        chars: hex2bin('004100420043004400450046004700480049004a004b004c004d004e00c32018004f0050005100520053005400550056005700580059005a006100620063006400650066006700680069006a006b006c006d006e00c300b1006f0070007100720073007400750076007700780079007a003100320033003400350036003700380039003000210040002300240025002a00280029005f002b003d002d00e2201a00ac00c200a1003f00c200bf005b005d007b007d0022002c002e002f00c300a7003c003e007c0020'),
-      },
     ];
   }
   return alphabets;
@@ -64,11 +64,27 @@ export function loadServices() {
 }
 
 export function saveMasterPassword(text) {
-  getLocalStorage().setItem('master', text || '');
+  // Master password is not saved.
+  if (window.location.protocol === 'https:') {
+    return;
+  }
+
+  // On http (localhost) is stored for convenience,
+  // since the browser refuses to save passwords on non-https webpages
+  try {
+    let key = getLocalStorage().getItem('master-key') || randId();
+    let pass = encrypt(text || '', key);
+    getSessionStorage().setItem('master', pass);
+  } catch (e) {
+    console.error(e);
+  }
 }
 
 export function loadMasterPassword() {
-  return getLocalStorage().getItem('master') || '';
+  let key = getLocalStorage().getItem('master-key');
+  let text = getSessionStorage().getItem('master');
+  if (!text || !key) return '';
+  return decrypt(text, key) || '';
 }
 
 export function getAndIncrementId(name) {
@@ -94,5 +110,22 @@ function getLocalStorage() {
       };
     }
     return window.localStorageFallback;
+  }
+}
+
+function getSessionStorage() {
+  try {
+    return window.sessionStorage;
+  } catch (e) {
+    console.error(e);
+    // Using fallback
+    if (!window.sessionStorageFallback) {
+      let storage = {};
+      window.sessionStorageFallback = {
+        getItem: (name) => storage[name],
+        setItem: (name, item) => storage[name] = item,
+      };
+    }
+    return window.sessionStorageFallback;
   }
 }

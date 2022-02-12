@@ -84,6 +84,9 @@ export default function App() {
         <p>To start using this app you need to fill the master password and add services.</p>
         <p>Services and alphabets are stores in you browser cache (localstorage). To share this settings between browsers/devices check the Import/Export tab.</p>
 
+        <p>
+          Make sure your master password has good strength. Check out <a href="https://www.passwordmonster.com/">passwordmonster.com</a> to see the time needed to brute force you password.
+        </p>
       </div>
     }
   </div>;

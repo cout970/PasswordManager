@@ -17,6 +17,10 @@ export function sha512(text) {
  * @returns {number}
  */
 export function randId() {
+  if (window.crypto && window.crypto.randomUUID) {
+    return window.crypto.randomUUID();
+  }
+  // Fallback if crypto is not supported
   return (Math.random() * 99999999) | 0;
 }
 
@@ -100,9 +104,10 @@ export function getPassword(seed, alphabet) {
  * @param service {string}
  * @param length {number}
  * @param useRandomSeed {boolean} use legacy generation algorithm
+ * @param alphabetLen {number} use legacy generation algorithm
  * @returns {number[]}
  */
-export function getPasswordSeed(password, service, length, useRandomSeed) {
+export function getPasswordSeed(password, service, length, useRandomSeed, alphabetLen) {
   let passSeed = [];
 
   if (useRandomSeed) {
@@ -110,7 +115,7 @@ export function getPasswordSeed(password, service, length, useRandomSeed) {
     const random = create(seed);
 
     for (let i = 0; i < length; i++) {
-      passSeed.push(random(100));
+      passSeed.push(random(alphabetLen));
     }
   } else {
     const randSeed = sha512(sha512(password) + sha512(service));
@@ -245,15 +250,22 @@ export function bin2hex(text) {
  * @returns {string}
  */
 export function generatePassword(masterPassword, code, len, alphabet, allGroups, useRandomSeed) {
-  const seed = getPasswordSeed(masterPassword, code, len, useRandomSeed);
+  const seed = getPasswordSeed(masterPassword, code, len, useRandomSeed, alphabet.length);
   let pass = getPassword(seed, alphabet);
 
   if (allGroups) {
     let groups = getCharacterGroups(alphabet);
     let index = 0;
 
+    // If there are more groups that the length of the password is impossible
+    // to include characters from all groups
+    if (groups.length > len) {
+      return pass;
+    }
+
     // Regen the password until it has characters from all groups
-    while (true) {
+    // Limit to 20 trys
+    while (index < 20) {
       let passes = true;
 
       for (let group of groups) {
@@ -267,7 +279,7 @@ export function generatePassword(masterPassword, code, len, alphabet, allGroups,
         break;
       }
 
-      const seed = getPasswordSeed(masterPassword, index + ':' + code, len, useRandomSeed);
+      const seed = getPasswordSeed(masterPassword, index + ':' + code, len, useRandomSeed, alphabet.length);
       pass = getPassword(seed, alphabet);
       index++;
     }
@@ -276,6 +288,11 @@ export function generatePassword(masterPassword, code, len, alphabet, allGroups,
   return pass;
 }
 
+/**
+ * Downloads a text file named [filename] with the content [text]
+ * @param filename
+ * @param text
+ */
 export function downloadAsFile(filename, text) {
   const element = document.createElement('a');
   element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
