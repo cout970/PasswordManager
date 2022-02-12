@@ -1,6 +1,69 @@
 import {decrypt, encrypt, hex2bin, randId} from './util';
-import {deserializeAlphabets, deserializeServices, serializeAlphabets, serializeServices} from './serialize';
+import {
+  deserializeAlphabets,
+  deserializeServices,
+  deserializeSettings,
+  serializeAlphabets,
+  serializeServices,
+} from './serialize';
 
+/**
+ * Get current app settings
+ * @returns {{
+ *   storeSettings: boolean,
+ *   storeMasterPassword: boolean,
+ *   defaultPasswordLength: number,
+ *   defaultAllGroups: boolean,
+ *   defaultRandomSeed: boolean,
+ *   darkTheme: boolean,
+ * }}
+ */
+export function getSettings() {
+  let json = getLocalStorage().getItem('settings');
+  let settings = deserializeSettings(json) || {};
+
+  if (typeof settings.storeSettings !== 'boolean') {
+    // By default, store most settings
+    settings.storeSettings = true;
+  }
+
+  if (typeof settings.storeMasterPassword !== 'boolean') {
+    // By default, don't store the master password
+    settings.storeMasterPassword = false;
+  }
+
+  if (typeof settings.defaultPasswordLength !== 'number') {
+    settings.defaultPasswordLength = 16;
+  }
+
+  if (typeof settings.defaultAllGroups !== 'boolean') {
+    settings.defaultAllGroups = true;
+  }
+
+  if (typeof settings.defaultRandomSeed !== 'boolean') {
+    settings.defaultRandomSeed = false;
+  }
+
+  if (typeof settings.darkTheme !== 'boolean') {
+    settings.darkTheme = true;
+  }
+
+  return settings;
+}
+
+/**
+ * Update the app settings
+ * @returns {{}}
+ */
+export function setSettings(newSettings) {
+  let settings = {...getSettings(), ...newSettings};
+  getLocalStorage().setItem('settings', serializeServices(settings));
+}
+
+/**
+ * Attempt to retrieve the saved alphabets
+ * @returns {[]}
+ */
 export function loadAlphabets() {
   let json = getLocalStorage().getItem('alphabets');
   let alphabets = deserializeAlphabets(json);
@@ -51,42 +114,66 @@ export function loadAlphabets() {
 }
 
 export function saveAlphabets(alphabets) {
+  if (!getSettings().storeSettings) {
+    return;
+  }
   getLocalStorage().setItem('alphabets', serializeAlphabets(alphabets) || '');
 }
 
-export function saveServices(services) {
-  getLocalStorage().setItem('services', serializeServices(services) || '');
-}
-
+/**
+ * Attempt to retrieve the saved services
+ * @returns {[]}
+ */
 export function loadServices() {
   let json = getLocalStorage().getItem('services');
   return deserializeServices(json) || [];
 }
 
+export function saveServices(services) {
+  if (!getSettings().storeSettings) {
+    return;
+  }
+  getLocalStorage().setItem('services', serializeServices(services) || '');
+}
+
+/**
+ * Attempt to retrieve the saved master password
+ * @returns {string}
+ */
+export function loadMasterPassword() {
+  let key = getLocalStorage().getItem('master-key');
+  let text = getLocalStorage().getItem('master');
+  if (!text || !key) return '';
+  return decrypt(text, key) || '';
+}
+
 export function saveMasterPassword(text) {
-  // Master password is not saved.
-  if (window.location.protocol === 'https:') {
+  if (!getSettings().storeSettings) {
     return;
   }
 
-  // On http (localhost) is stored for convenience,
-  // since the browser refuses to save passwords on non-https webpages
+  if (!getSettings().storeMasterPassword) {
+    text = '';
+  }
+
   try {
-    let key = getLocalStorage().getItem('master-key') || randId();
+    let key = getLocalStorage().getItem('master-key');
+    if (!key) {
+      key = randId();
+      getLocalStorage().setItem('master-key', key);
+    }
     let pass = encrypt(text || '', key);
-    getSessionStorage().setItem('master', pass);
+    getLocalStorage().setItem('master', pass);
   } catch (e) {
     console.error(e);
   }
 }
 
-export function loadMasterPassword() {
-  let key = getLocalStorage().getItem('master-key');
-  let text = getSessionStorage().getItem('master');
-  if (!text || !key) return '';
-  return decrypt(text, key) || '';
-}
-
+/**
+ * Get next value in a sequence, sequences are stored in the browser local storage
+ * @param name
+ * @returns {number}
+ */
 export function getAndIncrementId(name) {
   let curr = getLocalStorage().getItem('sequence-' + name) || 0;
   // Force integer
@@ -96,6 +183,18 @@ export function getAndIncrementId(name) {
   return curr;
 }
 
+/**
+ * Remove all stored data by this application, same a clearing cookies/storage
+ */
+export function nukeAllData() {
+  getLocalStorage().clear();
+  getSessionStorage().clear();
+}
+
+/**
+ * Gets the window local storage, if the user has disabled this feature a fallback will be provided
+ * @returns {Storage}
+ */
 function getLocalStorage() {
   try {
     return window.localStorage;
@@ -107,12 +206,17 @@ function getLocalStorage() {
       window.localStorageFallback = {
         getItem: (name) => storage[name],
         setItem: (name, item) => storage[name] = item,
+        clear: () => storage = {},
       };
     }
     return window.localStorageFallback;
   }
 }
 
+/**
+ * Gets the window session storage, if the user has disabled this feature a fallback will be provided
+ * @returns {Storage}
+ */
 function getSessionStorage() {
   try {
     return window.sessionStorage;
@@ -124,6 +228,7 @@ function getSessionStorage() {
       window.sessionStorageFallback = {
         getItem: (name) => storage[name],
         setItem: (name, item) => storage[name] = item,
+        clear: () => storage = {},
       };
     }
     return window.sessionStorageFallback;

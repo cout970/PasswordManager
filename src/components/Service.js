@@ -24,32 +24,33 @@ export function Service({service, masterPassword, alphabets, onChange}) {
       setCopyAnim(true);
       setTimeout(() => {
         setCopyAnim(false);
-      }, 1000);
+      }, 500);
     });
   };
 
   return <div className={editing ? 'service editing' : 'service'} key={service.id}>
     <div className="first-row">
       <div className="service-name">{service.name}</div>
+      <div className="service-inputs">
+        <button className="copy-btn icon-btn" onClick={copy} title="Copy to clipboard">
+          {copyAnim
+            ? <ClipboardCheckIcon key="clipboard-check-icon" className="checked"/>
+            : <ClipboardIcon key="clipboard-icon"/>
+          }
+        </button>
 
-      <button className="copy-btn icon-btn" onClick={copy} title='Copy to clipboard'>
-        {copyAnim
-          ? <ClipboardCheckIcon key="clipboard-check-icon" className='checked'/>
-          : <ClipboardIcon key="clipboard-icon"/>
-        }
-      </button>
+        <input className="pass-input" type={show ? 'text' : 'password'} readOnly={true} value={pass}/>
 
-      <input className="pass-input" type={show ? 'text' : 'password'} readOnly={true} value={pass}/>
+        <button className="show-btn icon-btn" onClick={_ => setShow(!show)} title="Show/Hide password">
+          {show
+            ? <HideIcon key="hide-icon"/>
+            : <ShowIcon key="show-icon"/>}
+        </button>
 
-      <button className="show-btn icon-btn" onClick={_ => setShow(!show)} title='Show/Hide password'>
-        {show
-          ? <HideIcon key="hide-icon"/>
-          : <ShowIcon key="show-icon"/>}
-      </button>
-
-      <button className="edit-btn icon-btn" onClick={_ => setEditing(!editing)} title='Edit'>
-        <GearIcon key="gear-icon"/>
-      </button>
+        <button className="edit-btn icon-btn" onClick={_ => setEditing(!editing)} title="Edit">
+          <GearIcon key="gear-icon"/>
+        </button>
+      </div>
     </div>
 
     {editing ? <ServiceSettings key="settings" service={service} alphabets={alphabets} onChange={onChange}/> : ''}

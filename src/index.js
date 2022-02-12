@@ -2,7 +2,9 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.scss';
 import App from './components/App';
-import * as Utilities from './util';
+import * as Util from './util';
+import * as Storage from './storage';
+import * as Serialize from './serialize';
 
 ReactDOM.render(
   <React.StrictMode>
@@ -13,6 +15,17 @@ ReactDOM.render(
 
 // Cli utilities
 // Expose utilities to the global environment
-Object.entries(Utilities).forEach(([key, value]) => {
-  window[key] = value;
-})
+window['Util'] = {};
+Object.entries(Util).forEach(([key, value]) => {
+  window['Util'][key] = value;
+});
+
+window['Storage'] = {};
+Object.entries(Storage).forEach(([key, value]) => {
+  window['Storage'][key] = value;
+});
+
+window['Serialize'] = {};
+Object.entries(Serialize).forEach(([key, value]) => {
+  window['Serialize'][key] = value;
+});

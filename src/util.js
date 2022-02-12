@@ -14,14 +14,14 @@ export function sha512(text) {
 
 /**
  * Generates a random integer between 0 and 99999999
- * @returns {number}
+ * @returns {string}
  */
 export function randId() {
   if (window.crypto && window.crypto.randomUUID) {
     return window.crypto.randomUUID();
   }
   // Fallback if crypto is not supported
-  return (Math.random() * 99999999) | 0;
+  return ((Math.random() * 99999999) | 0) + '';
 }
 
 /**

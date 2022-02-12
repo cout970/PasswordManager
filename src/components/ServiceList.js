@@ -1,5 +1,5 @@
 import {randId} from '../util';
-import {getAndIncrementId} from '../storage';
+import {getAndIncrementId, getSettings} from '../storage';
 import {Service} from './Service';
 import {useState} from 'react';
 
@@ -18,7 +18,7 @@ export function ServiceList({masterPassword, alphabets, services, setServices}) 
     }
   };
 
-  let content = <div className='no-results'>There are no matching services</div>;
+  let content = <div className="no-results">There are no matching services</div>;
   const displayServices = services.filter(s => matches(s.name, search));
 
   if (displayServices.length) {
@@ -35,9 +35,10 @@ export function ServiceList({masterPassword, alphabets, services, setServices}) 
 
   return <div className="service-list">
     <h2>Services</h2>
-    <div className='list-header'>
+    <div className="list-header">
       <button className="btn add-service" onClick={addService}>Add service</button>
-      <input className="search" type="text" placeholder="Search by name" value={search} onChange={e => setSearch(e.target.value)}/>
+      <input className="search" type="text" placeholder="Search by name" value={search}
+             onChange={e => setSearch(e.target.value)}/>
     </div>
     {content}
   </div>;
@@ -49,19 +50,28 @@ function matches(text, search) {
 
 /**
  * Creates a new service
- * @returns {{code: string, name: string, id: number, alphabet: string, passLen: number}}
+ * @returns {{
+ * id: string,
+ * code: string,
+ * name: string,
+ * alphabet: string,
+ * passLen: number,
+ * useRandomSeed:boolean,
+ * allGroups:boolean,
+ * }}
  */
 export function createService() {
   let index = getAndIncrementId('service-index');
 
+  let settings = getSettings();
   return {
     id: randId(),
     name: 'Service #' + index,
     code: 'service-' + index,
-    passLen: 16,
+    passLen: settings.defaultPasswordLength,
     alphabet: 'default',
-    allGroups: true,
-    useRandomSeed: false,
+    allGroups: settings.defaultAllGroups,
+    useRandomSeed: settings.defaultRandomSeed,
   };
 
 }

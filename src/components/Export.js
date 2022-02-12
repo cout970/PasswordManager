@@ -1,8 +1,14 @@
 import {useState} from 'react';
 import {decrypt, downloadAsFile, encrypt, sha512} from '../util';
-import {deserializeAlphabets, deserializeServices, serializeAlphabets, serializeServices} from '../serialize';
+import {
+  deserializeAlphabets,
+  deserializeServices, deserializeSettings,
+  serializeAlphabets,
+  serializeServices,
+  serializeSettings,
+} from '../serialize';
 
-export default function Export({masterPassword, alphabets, services, onDataImport}) {
+export default function Export({masterPassword, alphabets, services, settings, onDataImport}) {
   const [text, setText] = useState('');
   const [exportResult, setExportResult] = useState('');
 
@@ -13,8 +19,10 @@ export default function Export({masterPassword, alphabets, services, onDataImpor
       masterPasswordHash: sha512(masterPassword),
       alphabets: encrypt(serializeAlphabets(alphabets), masterPassword),
       services: encrypt(serializeServices(services), masterPassword),
+      settings: encrypt(serializeSettings(settings), masterPassword),
     };
     data = JSON.stringify(data, null, 2);
+
     if (target === 'file') {
       downloadAsFile(`settings-${date}.txt`, data);
     } else {
@@ -38,13 +46,20 @@ export default function Export({masterPassword, alphabets, services, onDataImpor
         return;
       }
 
-      let alphabets = decrypt(data.alphabets, masterPassword);
-      let services = decrypt(data.services, masterPassword);
+      let items = {};
 
-      let items = {
-        'alphabets': deserializeAlphabets(alphabets),
-        'services': deserializeServices(services),
-      };
+      if (data.alphabets) {
+        let alphabets = decrypt(data.alphabets, masterPassword);
+        items.alphabets = deserializeAlphabets(alphabets);
+      }
+      if (data.services) {
+        let services = decrypt(data.services, masterPassword);
+        items.services = deserializeServices(services);
+      }
+      if (data.settings) {
+        let settings = decrypt(data.settings, masterPassword);
+        items.settings = deserializeSettings(settings);
+      }
 
       if (window.confirm('Are you sure you want to override the current settings with the new settings?')) {
         onDataImport(items);

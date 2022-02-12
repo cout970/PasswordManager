@@ -39,3 +39,11 @@ export function deserializeAlphabets(json) {
     };
   });
 }
+
+export function serializeSettings(settings) {
+  return settings ? JSON.stringify(settings) : null;
+}
+
+export function deserializeSettings(json) {
+  return json ? JSON.parse(json) : null;
+}
