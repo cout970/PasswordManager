@@ -3,6 +3,8 @@
 Free password manager that doesn't store credentials, instead generates them every time you need a password. Since the
 generation algorithm and the input parameters are the same you will always get the same passwords.
 
+### [Try it online here!](https://nss.cout970.net)
+
 ### How it works?
 
 A master password is supplied by the user (can be stored on the browser). Each service has a code that is mixed with the
