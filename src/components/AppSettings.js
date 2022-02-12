@@ -14,7 +14,7 @@ export function AppSettings({settings, setSettings}) {
   return <div className="app-settings">
     <h2>Settings</h2>
 
-    <div className="row">
+    <div className="row checkbox">
       <label htmlFor="storeSettings">Store settings</label>
       <input type="checkbox" id="storeSettings"
              checked={settings.storeSettings} name="storeSettings"
@@ -24,7 +24,7 @@ export function AppSettings({settings, setSettings}) {
 
     {settings.storeSettings ? <>
 
-      <div className="row">
+      <div className="row checkbox">
         <label htmlFor="darkTheme">Dark theme</label>
         <input type="checkbox" id="darkTheme"
                checked={settings.darkTheme} name="darkTheme"
@@ -32,7 +32,7 @@ export function AppSettings({settings, setSettings}) {
         />
       </div>
 
-      <div className="row">
+      <div className="row checkbox">
         <label htmlFor="storeMasterPassword">Store master password</label>
         <input type="checkbox" id="storeMasterPassword"
                checked={settings.storeMasterPassword} name="storeMasterPassword"
@@ -48,7 +48,7 @@ export function AppSettings({settings, setSettings}) {
         />
       </div>
 
-      <div className="row">
+      <div className="row checkbox">
         <label htmlFor="defaultAllGroups">Default force all characters</label>
         <input type="checkbox" id="defaultAllGroups"
                checked={settings.defaultAllGroups} name="defaultAllGroups"
@@ -56,7 +56,7 @@ export function AppSettings({settings, setSettings}) {
         />
       </div>
 
-      <div className="row">
+      <div className="row checkbox">
         <label htmlFor="defaultRandomSeed">Default use random-seed algorithm</label>
         <input type="checkbox" id="defaultRandomSeed"
                checked={settings.defaultRandomSeed} name="defaultRandomSeed"

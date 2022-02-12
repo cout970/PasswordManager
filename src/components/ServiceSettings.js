@@ -28,6 +28,13 @@ export function ServiceSettings({service, alphabets, onChange}) {
       />
     </div>
     <div className="row">
+      <label htmlFor={service.id + '-username'}>Username</label>
+      <input type="text" id={service.id + '-username'}
+             value={service.username} name="username"
+             onChange={e => update({username: e.target.value})}
+      />
+    </div>
+    <div className="row">
       <label htmlFor={service.id + '-passLen'}>Password length</label>
       <input type="number" min="1" max="255" id={service.id + '-passLen'}
              value={service.passLen} name="passLen"
@@ -45,14 +52,14 @@ export function ServiceSettings({service, alphabets, onChange}) {
         })}
       </select>
     </div>
-    <div className="row">
+    <div className="row checkbox">
       <label htmlFor={service.id + '-allGroups'}>Force all character groups</label>
       <input type="checkbox" id={service.id + '-allGroups'}
              checked={service.allGroups} name="allGroups"
              onChange={e => update({allGroups: e.target.checked})}
       />
     </div>
-    <div className="row">
+    <div className="row checkbox">
       <label htmlFor={service.id + '-useRandomSeed'}>Use random-seed algorithm</label>
       <input type="checkbox" id={service.id + '-useRandomSeed'}
              checked={service.useRandomSeed} name="useRandomSeed"

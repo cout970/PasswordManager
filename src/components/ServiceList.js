@@ -8,6 +8,7 @@ export function ServiceList({masterPassword, alphabets, services, setServices}) 
 
   const addService = () => {
     setServices([...services, createService()]);
+    setSearch('');
   };
 
   const setService = (newValue) => {
@@ -19,18 +20,16 @@ export function ServiceList({masterPassword, alphabets, services, setServices}) 
   };
 
   let content = <div className="no-results">There are no matching services</div>;
-  const displayServices = services.filter(s => matches(s.name, search));
+  const displayServices = search ? searchBy(services, 'name', search) : services;
 
   if (displayServices.length) {
-    content = displayServices.map(s =>
-      <Service
-        key={'service-' + s.id}
-        service={s}
-        masterPassword={masterPassword}
-        alphabets={alphabets}
-        onChange={setService}
-      />,
-    );
+    content = displayServices.map(s => <Service
+      key={'service-' + s.id}
+      service={s}
+      masterPassword={masterPassword}
+      alphabets={alphabets}
+      onChange={setService}
+    />);
   }
 
   return <div className="service-list">
@@ -44,8 +43,40 @@ export function ServiceList({masterPassword, alphabets, services, setServices}) 
   </div>;
 }
 
+function searchBy(list, field, search) {
+  // Get search weight of each item
+  list = list.map(s => [s, matches(s[field], search)]);
+  // Remove items that don't match
+  list = list.filter(([_, b]) => b > 0);
+  // Sort by search weight
+  list.sort(([_a, a], [_b, b]) => b - a);
+  // Return list of the same type as input
+  return list.map(([a, _]) => a);
+}
+
 function matches(text, search) {
-  return text.includes(search);
+  // Split text into tokens
+  let tokens = text.toLowerCase().split(' ').filter(s => !!s);
+  let keywords = search.toLowerCase().split(' ').filter(s => !!s);
+  let weight = 0;
+
+  for (const kw of keywords) {
+    let count = 0;
+
+    for (const tk of tokens) {
+      if (tk.includes(kw)) {
+        weight += kw.length * 100 / tk.length;
+        count++;
+      }
+    }
+
+    // If one keyword doesn't match we reject the text
+    if (count === 0) {
+      return 0;
+    }
+  }
+
+  return weight;
 }
 
 /**
@@ -68,6 +99,7 @@ export function createService() {
     id: randId(),
     name: 'Service #' + index,
     code: 'service-' + index,
+    username: '',
     passLen: settings.defaultPasswordLength,
     alphabet: 'default',
     allGroups: settings.defaultAllGroups,
@@ -101,6 +133,10 @@ export function validateService(service_input) {
       .replaceAll(/[^a-z0-9\-]/, '-');
   }
 
+  if (typeof service.username !== 'string') {
+    service.username = '';
+  }
+
   if (!service.passLen || isNaN(service.passLen) || service.passLen < 0 || service.passLen > 255) {
     service.passLen = 16;
   }
@@ -116,5 +152,6 @@ export function validateService(service_input) {
   if (service.useRandomSeed !== true && service.useRandomSeed !== false) {
     service.useRandomSeed = false;
   }
+
   return service;
 }
