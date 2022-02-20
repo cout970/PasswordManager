@@ -1,9 +1,9 @@
-import {randId} from '../util';
+import {randId, searchBy} from '../util';
 import {getAndIncrementId, getSettings} from '../storage';
 import {Service} from './Service';
 import {useState} from 'react';
 
-export function ServiceList({masterPassword, alphabets, services, setServices}) {
+export function ServiceList({masterPassword, alphabets, settings, services, setServices}) {
   const [search, setSearch] = useState('');
 
   const addService = () => {
@@ -12,7 +12,7 @@ export function ServiceList({masterPassword, alphabets, services, setServices}) 
   };
 
   const setService = (newValue) => {
-    if (Number.isInteger(newValue)) {
+    if (typeof newValue === 'string') {
       setServices(services.filter(service => service.id !== newValue));
     } else {
       setServices(services.map(service => service.id === newValue.id ? validateService(newValue) : service));
@@ -23,13 +23,15 @@ export function ServiceList({masterPassword, alphabets, services, setServices}) 
   const displayServices = search ? searchBy(services, 'name', search) : services;
 
   if (displayServices.length) {
-    content = displayServices.map(s => <Service
-      key={'service-' + s.id}
-      service={s}
-      masterPassword={masterPassword}
-      alphabets={alphabets}
-      onChange={setService}
-    />);
+    content = displayServices.map(s =>
+      <Service
+        key={'service-' + s.id}
+        service={s}
+        masterPassword={masterPassword}
+        alphabets={alphabets}
+        settings={settings}
+        onChange={setService}
+      />);
   }
 
   return <div className="service-list">
@@ -41,42 +43,6 @@ export function ServiceList({masterPassword, alphabets, services, setServices}) 
     </div>
     {content}
   </div>;
-}
-
-function searchBy(list, field, search) {
-  // Get search weight of each item
-  list = list.map(s => [s, matches(s[field], search)]);
-  // Remove items that don't match
-  list = list.filter(([_, b]) => b > 0);
-  // Sort by search weight
-  list.sort(([_a, a], [_b, b]) => b - a);
-  // Return list of the same type as input
-  return list.map(([a, _]) => a);
-}
-
-function matches(text, search) {
-  // Split text into tokens
-  let tokens = text.toLowerCase().split(' ').filter(s => !!s);
-  let keywords = search.toLowerCase().split(' ').filter(s => !!s);
-  let weight = 0;
-
-  for (const kw of keywords) {
-    let count = 0;
-
-    for (const tk of tokens) {
-      if (tk.includes(kw)) {
-        weight += kw.length * 100 / tk.length;
-        count++;
-      }
-    }
-
-    // If one keyword doesn't match we reject the text
-    if (count === 0) {
-      return 0;
-    }
-  }
-
-  return weight;
 }
 
 /**

@@ -1,9 +1,9 @@
 import {decrypt, encrypt, hex2bin, randId} from './util';
 import {
-  deserializeAlphabets,
+  deserializeAlphabets, deserializeSecrets,
   deserializeServices,
   deserializeSettings,
-  serializeAlphabets,
+  serializeAlphabets, serializeSecrets,
   serializeServices,
 } from './serialize';
 
@@ -34,6 +34,10 @@ export function getSettings() {
 
   if (typeof settings.defaultPasswordLength !== 'number') {
     settings.defaultPasswordLength = 16;
+  }
+
+  if (typeof settings.defaultShowPassword !== 'boolean') {
+    settings.defaultShowPassword = false;
   }
 
   if (typeof settings.defaultAllGroups !== 'boolean') {
@@ -134,6 +138,19 @@ export function saveServices(services) {
     return;
   }
   getLocalStorage().setItem('services', serializeServices(services) || '');
+}
+
+/**
+ * Attempt to retrieve the saved secrets
+ * @returns {[]}
+ */
+export function loadSecrets() {
+  let json = getLocalStorage().getItem('secrets');
+  return deserializeSecrets(json) || [];
+}
+
+export function saveSecrets(secrets) {
+  getLocalStorage().setItem('secrets', serializeSecrets(secrets) || '');
 }
 
 /**

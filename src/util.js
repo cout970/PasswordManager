@@ -108,6 +108,12 @@ export function getPassword(seed, alphabet) {
  * @returns {number[]}
  */
 export function getPasswordSeed(password, service, length, useRandomSeed, alphabetLen) {
+  // Check if the service code matches a fixed seed pattern and return that seed instead
+  let fixedSeed = getFixedSeed(service);
+  if (fixedSeed) {
+    return fixedSeed;
+  }
+
   let passSeed = [];
 
   if (useRandomSeed) {
@@ -126,6 +132,17 @@ export function getPasswordSeed(password, service, length, useRandomSeed, alphab
   }
 
   return passSeed;
+}
+
+/**
+ * Parses a service code to find a pattern like 'seed:ff00ff1a' which will be used as a seed
+ * @param service
+ * @returns {null}
+ */
+export function getFixedSeed(service) {
+  let fixedSeedRegex = /seed:(([0-9a-f]{2})+)/;
+  let match = fixedSeedRegex.exec(service);
+  return match ? hex2ints(match[1]) : null;
 }
 
 /**
@@ -240,6 +257,38 @@ export function bin2hex(text) {
 }
 
 /**
+ * Encodes a JS array of integers (0-255) into hex codes, uses 2 digits to encode 1 byte
+ * @param list {number[]}
+ * @returns {string}
+ */
+export function ints2hex(list) {
+  let result = '';
+
+  for (let i = 0; i < list.length; i++) {
+    let hex = (list[i] | 0).toString(16);
+    result += ('00' + hex).slice(-2);
+  }
+
+  return result;
+}
+
+/**
+ * Decodes a string of hex codes into a JS array of integers, uses 2 digits to encode 1 byte (0-255)
+ * @param text {string}
+ * @returns {number[]}
+ */
+export function hex2ints(text) {
+  const hexes = text.match(/.{1,2}/g) || [];
+  let result = [];
+
+  for (let j = 0; j < hexes.length; j++) {
+    result.push(parseInt(hexes[j], 16));
+  }
+
+  return result;
+}
+
+/**
  * Generates a password using all input settings
  * @param masterPassword {string}
  * @param code {string}
@@ -250,42 +299,59 @@ export function bin2hex(text) {
  * @returns {string}
  */
 export function generatePassword(masterPassword, code, len, alphabet, allGroups, useRandomSeed) {
-  const seed = getPasswordSeed(masterPassword, code, len, useRandomSeed, alphabet.length);
-  let pass = getPassword(seed, alphabet);
+  let seed;
 
   if (allGroups) {
-    let groups = getCharacterGroups(alphabet);
-    let index = 0;
-
-    // If there are more groups that the length of the password is impossible
-    // to include characters from all groups
-    if (groups.length > len) {
-      return pass;
-    }
-
-    // Regen the password until it has characters from all groups
-    // Limit to 20 trys
-    while (index < 20) {
-      let passes = true;
-
-      for (let group of groups) {
-        if (!containsCharacterGroup(pass, group)) {
-          passes = false;
-          break;
-        }
-      }
-
-      if (passes) {
-        break;
-      }
-
-      const seed = getPasswordSeed(masterPassword, index + ':' + code, len, useRandomSeed, alphabet.length);
-      pass = getPassword(seed, alphabet);
-      index++;
-    }
+    seed = getPasswordSeedWithAllGroups(masterPassword, code, len, alphabet, useRandomSeed);
+  } else {
+    seed = getPasswordSeed(masterPassword, code, len, useRandomSeed, alphabet.length);
   }
 
-  return pass;
+  return getPassword(seed, alphabet);
+}
+
+/**
+ * Generate a password seed, such that the generated password will contain characters from all character groups
+ * @param masterPassword
+ * @param code
+ * @param len
+ * @param alphabet
+ * @param useRandomSeed
+ * @returns {number[]}
+ */
+export function getPasswordSeedWithAllGroups(masterPassword, code, len, alphabet, useRandomSeed) {
+  let seed = getPasswordSeed(masterPassword, code, len, useRandomSeed, alphabet.length);
+  let groups = getCharacterGroups(alphabet);
+  let index = 0;
+
+  // If there are more groups that the length of the password is impossible
+  // to include characters from all groups
+  if (groups.length > len) {
+    return seed;
+  }
+
+  // Regen the password until it has characters from all groups
+  // Limit to 20 trys
+  while (index < 20) {
+    let pass = getPassword(seed, alphabet);
+    let passes = true;
+
+    for (let group of groups) {
+      if (!containsCharacterGroup(pass, group)) {
+        passes = false;
+        break;
+      }
+    }
+
+    if (passes) {
+      break;
+    }
+
+    seed = getPasswordSeed(masterPassword, index + ':' + code, len, useRandomSeed, alphabet.length);
+    index++;
+  }
+
+  return seed;
 }
 
 /**
@@ -302,4 +368,56 @@ export function downloadAsFile(filename, text) {
   document.body.appendChild(element);
   element.click();
   document.body.removeChild(element);
+}
+
+/**
+ * Perform a search into a list of entities
+ *
+ * @param list {array} list of entities
+ * @param field {string} field of the entity to search
+ * @param search {string} text input to match
+ * @returns {*}
+ */
+export function searchBy(list, field, search) {
+  // Get search weight of each item
+  list = list.map(s => [s, matches(s[field], search)]);
+  // Remove items that don't match
+  list = list.filter(([_, b]) => b > 0);
+  // Sort by search weight
+  list.sort(([_a, a], [_b, b]) => b - a);
+  // Return list of the same type as input
+  return list.map(([a, _]) => a);
+}
+
+/**
+ * Compares a string with a search term and returns the similarity
+ * Returns 0 if the text doesn't match the search term
+ *
+ * @param text {string}
+ * @param search {string}
+ * @returns {number}
+ */
+function matches(text, search) {
+  // Split text into tokens
+  let tokens = text.toLowerCase().split(' ').filter(s => !!s);
+  let keywords = search.toLowerCase().split(' ').filter(s => !!s);
+  let weight = 0;
+
+  for (const kw of keywords) {
+    let count = 0;
+
+    for (const tk of tokens) {
+      if (tk.includes(kw)) {
+        weight += kw.length * 100 / tk.length;
+        count++;
+      }
+    }
+
+    // If one keyword doesn't match we reject the text
+    if (count === 0) {
+      return 0;
+    }
+  }
+
+  return weight;
 }

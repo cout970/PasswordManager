@@ -229,7 +229,7 @@ code {
   margin-bottom: 10px;
 }
 
-.service-list, .alphabet-list {
+.service-list, .alphabet-list, .secret-list {
   display: flex;
   flex-flow: column;
   width: 100%;
@@ -259,7 +259,7 @@ code {
     text-align: center;
   }
 
-  .service, .alphabet {
+  .service, .alphabet, .secret {
     padding: 5px 10px;
     background: var(--bkg-l-color);
     border: 1px solid var(--bkg-d-color);
@@ -298,7 +298,7 @@ code {
         flex-flow: column;
       }
 
-      .service-name {
+      .service-name, .secret-name {
         flex-grow: 1;
         font-weight: bold;
 
@@ -307,7 +307,7 @@ code {
         }
       }
 
-      .service-inputs {
+      .service-inputs, .secret-inputs {
         display: flex;
         align-items: center;
         flex-flow: row nowrap;
@@ -380,6 +380,11 @@ code {
         }
       }
     }
+
+    .secret-contents {
+      margin-top: 10px;
+      width: 100%;
+    }
   }
 
   .alphabet .edit-btn {
@@ -387,7 +392,7 @@ code {
   }
 }
 
-.service-settings, .alphabet-settings, .app-settings {
+.service-settings, .alphabet-settings, .secret-settings, .app-settings {
   padding: 10px;
 
   h3 {
@@ -400,6 +405,9 @@ code {
     justify-content: space-between;
     margin-top: 10px;
 
+    &.vertical {
+      flex-flow: column;
+    }
 
     @media(max-width: 500px) {
       flex-flow: column;

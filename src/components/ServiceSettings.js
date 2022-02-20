@@ -1,4 +1,5 @@
 import {ReactComponent as WarningIcon} from '../icons/warning.svg';
+import {getFixedSeed} from '../util';
 
 export function ServiceSettings({service, alphabets, onChange}) {
   const update = (changes) => {
@@ -11,6 +12,8 @@ export function ServiceSettings({service, alphabets, onChange}) {
     }
   };
 
+  let usesFixedSeed = !!getFixedSeed(service.code);
+
   return <div className="service-settings">
     <div className="row">
       <label htmlFor={service.id + '-name'}>Name</label>
@@ -19,6 +22,7 @@ export function ServiceSettings({service, alphabets, onChange}) {
              onChange={e => update({name: e.target.value})}
       />
     </div>
+
     <div className="row">
       <label htmlFor={service.id + '-code'}>ID <WarningIcon
         title="Changing this value will change the generated passwords"/></label>
@@ -27,6 +31,7 @@ export function ServiceSettings({service, alphabets, onChange}) {
              onChange={e => update({code: e.target.value})}
       />
     </div>
+
     <div className="row">
       <label htmlFor={service.id + '-username'}>Username</label>
       <input type="text" id={service.id + '-username'}
@@ -34,13 +39,7 @@ export function ServiceSettings({service, alphabets, onChange}) {
              onChange={e => update({username: e.target.value})}
       />
     </div>
-    <div className="row">
-      <label htmlFor={service.id + '-passLen'}>Password length</label>
-      <input type="number" min="1" max="255" id={service.id + '-passLen'}
-             value={service.passLen} name="passLen"
-             onChange={e => update({passLen: e.target.value | 0})}
-      />
-    </div>
+
     <div className="row">
       <label htmlFor={service.id + '-alphabet'}>Alphabet</label>
       <select name="alphabet" id={service.id + '-alphabet'}
@@ -52,20 +51,32 @@ export function ServiceSettings({service, alphabets, onChange}) {
         })}
       </select>
     </div>
-    <div className="row checkbox">
-      <label htmlFor={service.id + '-allGroups'}>Force all character groups</label>
-      <input type="checkbox" id={service.id + '-allGroups'}
-             checked={service.allGroups} name="allGroups"
-             onChange={e => update({allGroups: e.target.checked})}
-      />
-    </div>
-    <div className="row checkbox">
-      <label htmlFor={service.id + '-useRandomSeed'}>Use random-seed algorithm</label>
-      <input type="checkbox" id={service.id + '-useRandomSeed'}
-             checked={service.useRandomSeed} name="useRandomSeed"
-             onChange={e => update({useRandomSeed: e.target.checked})}
-      />
-    </div>
+
+    {!usesFixedSeed ? <>
+      <div className="row">
+        <label htmlFor={service.id + '-passLen'}>Password length</label>
+        <input type="number" min="1" max="255" id={service.id + '-passLen'}
+               value={service.passLen} name="passLen"
+               onChange={e => update({passLen: e.target.value | 0})}
+        />
+      </div>
+
+      <div className="row checkbox">
+        <label htmlFor={service.id + '-allGroups'}>Force all character groups</label>
+        <input type="checkbox" id={service.id + '-allGroups'}
+               checked={service.allGroups} name="allGroups"
+               onChange={e => update({allGroups: e.target.checked})}
+        />
+      </div>
+
+      <div className="row checkbox">
+        <label htmlFor={service.id + '-useRandomSeed'}>Use random-seed algorithm</label>
+        <input type="checkbox" id={service.id + '-useRandomSeed'}
+               checked={service.useRandomSeed} name="useRandomSeed"
+               onChange={e => update({useRandomSeed: e.target.checked})}
+        />
+      </div>
+    </> : ''}
 
     <button className="btn remove-btn" onClick={removeService}>Remove service</button>
   </div>;

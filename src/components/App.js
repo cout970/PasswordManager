@@ -7,17 +7,19 @@ import {AppSettings} from './AppSettings';
 import {
   getSettings,
   loadAlphabets,
-  loadMasterPassword,
+  loadMasterPassword, loadSecrets,
   loadServices,
   saveAlphabets,
-  saveMasterPassword,
+  saveMasterPassword, saveSecrets,
   saveServices, setSettings,
 } from '../storage';
+import {SecretList} from './SecretList';
 
 export default function App() {
   const [masterPassword, setMasterPassword] = useState(loadMasterPassword());
   const [alphabets, setAlphabets] = useState(loadAlphabets());
   const [services, setServices] = useState(loadServices());
+  const [secrets, setSecrets] = useState(loadSecrets());
   const [currentSettings, setCurrentSettings] = useState(getSettings);
   const [tab, setTab] = useState('services');
 
@@ -25,7 +27,8 @@ export default function App() {
     saveMasterPassword(masterPassword);
     saveAlphabets(alphabets);
     saveServices(services);
-  }, [masterPassword, alphabets, services]);
+    saveSecrets(secrets, masterPassword);
+  }, [masterPassword, alphabets, services, secrets]);
 
   useEffect(_ => {
     if (currentSettings.darkTheme) {
@@ -43,6 +46,9 @@ export default function App() {
     }
     if (data.services) {
       setServices(data.services);
+    }
+    if (data.secrets) {
+      setSecrets(data.secrets);
     }
     if (data.settings) {
       updateSettings(data.settings);
@@ -72,6 +78,11 @@ export default function App() {
               Services
             </button>
 
+            <button className={tab === 'secrets' ? 'btn selected' : 'btn'}
+                    onClick={_ => setTab('secrets')}>
+              Secrets
+            </button>
+
             <button className={tab === 'alphabets' ? 'btn selected' : 'btn'}
                     onClick={_ => setTab('alphabets')}>
               Alphabets
@@ -93,6 +104,7 @@ export default function App() {
           <ServiceList key="service-list"
                        masterPassword={masterPassword}
                        alphabets={alphabets}
+                       settings={currentSettings}
                        services={services}
                        setServices={setServices}/>
           : ''}
@@ -103,11 +115,20 @@ export default function App() {
                         setAlphabets={setAlphabets}/>
           : ''}
 
+        {tab === 'secrets' ?
+          <SecretList key="secret-list"
+                      masterPassword={masterPassword}
+                      settings={currentSettings}
+                      secrets={secrets}
+                      setSecrets={setSecrets}/>
+          : ''}
+
         {tab === 'export' ?
           <Export key="export"
                   masterPassword={masterPassword}
                   alphabets={alphabets}
                   services={services}
+                  secrets={secrets}
                   settings={currentSettings}
                   onDataImport={onDataImport}/>
           : ''}

@@ -1,5 +1,12 @@
 import {useState} from 'react';
-import {copyToClipboard, generatePassword} from '../util';
+import {
+  copyToClipboard,
+  generatePassword,
+  getPassword,
+  getPasswordSeed,
+  getPasswordSeedWithAllGroups,
+  ints2hex,
+} from '../util';
 import {ReactComponent as ClipboardCheckIcon} from '../icons/clipboard_check.svg';
 import {ReactComponent as ClipboardIcon} from '../icons/clipboard.svg';
 import {ReactComponent as HideIcon} from '../icons/hide.svg';
@@ -7,16 +14,26 @@ import {ReactComponent as ShowIcon} from '../icons/show.svg';
 import {ReactComponent as GearIcon} from '../icons/gear.svg';
 import {ServiceSettings} from './ServiceSettings';
 
-export function Service({service, masterPassword, alphabets, onChange}) {
-  const [show, setShow] = useState(false);
+export function Service({service, masterPassword, alphabets, settings, onChange}) {
+  const [show, setShow] = useState(settings.defaultShowPassword);
   const [copyAnim, setCopyAnim] = useState(false);
   const [editing, setEditing] = useState(false);
 
   const alphabet = findAlphabetChars(service.alphabet, alphabets);
   let pass = '';
+  let passSeed = '';
 
   if (masterPassword) {
-    pass = generatePassword(masterPassword, service.code, service.passLen, alphabet, service.allGroups, service.useRandomSeed);
+    let seed;
+
+    if (service.allGroups) {
+      seed = getPasswordSeedWithAllGroups(masterPassword, service.code, service.passLen, alphabet, service.useRandomSeed);
+    } else {
+      seed = getPasswordSeed(masterPassword, service.code, service.passLen, service.useRandomSeed, alphabet.length);
+    }
+
+    pass = getPassword(seed, alphabet);
+    passSeed = ints2hex(seed);
   }
 
   const copy = () => {
@@ -40,6 +57,7 @@ export function Service({service, masterPassword, alphabets, onChange}) {
         </button>
 
         <input className="pass-input" type={show ? 'text' : 'password'} readOnly={true} value={pass}/>
+        <input type="hidden" value={passSeed}/>
 
         <button className="show-btn icon-btn" onClick={_ => setShow(!show)} title="Show/Hide password">
           {show

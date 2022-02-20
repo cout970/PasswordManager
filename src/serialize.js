@@ -1,4 +1,4 @@
-import {bin2hex, hex2bin} from './util';
+import {bin2hex, encrypt, hex2bin} from './util';
 
 export function serializeServices(service) {
   return service ? JSON.stringify(service) : null;
@@ -38,6 +38,19 @@ export function deserializeAlphabets(json) {
       chars: hex2bin(value.chars),
     };
   });
+}
+
+export function serializeSecrets(secrets) {
+  return secrets ? JSON.stringify(secrets) : null;
+}
+
+export function deserializeSecrets(json) {
+  try {
+    return json ? JSON.parse(json) : null;
+  } catch (e) {
+    console.error(e);
+    return null;
+  }
 }
 
 export function serializeSettings(settings) {

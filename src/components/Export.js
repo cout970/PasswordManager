@@ -1,14 +1,14 @@
 import {useState} from 'react';
 import {decrypt, downloadAsFile, encrypt, sha512} from '../util';
 import {
-  deserializeAlphabets,
+  deserializeAlphabets, deserializeSecrets,
   deserializeServices, deserializeSettings,
-  serializeAlphabets,
+  serializeAlphabets, serializeSecrets,
   serializeServices,
   serializeSettings,
 } from '../serialize';
 
-export default function Export({masterPassword, alphabets, services, settings, onDataImport}) {
+export default function Export({masterPassword, alphabets, services, secrets, settings, onDataImport}) {
   const [text, setText] = useState('');
   const [exportResult, setExportResult] = useState('');
 
@@ -19,6 +19,7 @@ export default function Export({masterPassword, alphabets, services, settings, o
       masterPasswordHash: sha512(masterPassword),
       alphabets: encrypt(serializeAlphabets(alphabets), masterPassword),
       services: encrypt(serializeServices(services), masterPassword),
+      secrets: encrypt(serializeSecrets(secrets), masterPassword),
       settings: encrypt(serializeSettings(settings), masterPassword),
     };
     data = JSON.stringify(data, null, 2);
@@ -55,6 +56,10 @@ export default function Export({masterPassword, alphabets, services, settings, o
       if (data.services) {
         let services = decrypt(data.services, masterPassword);
         items.services = deserializeServices(services);
+      }
+      if (data.secrets) {
+        let services = decrypt(data.secrets, masterPassword);
+        items.secrets = deserializeSecrets(services);
       }
       if (data.settings) {
         let settings = decrypt(data.settings, masterPassword);

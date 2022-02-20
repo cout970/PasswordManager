@@ -49,6 +49,14 @@ export function AppSettings({settings, setSettings}) {
       </div>
 
       <div className="row checkbox">
+        <label htmlFor="defaultShowPassword">Default show passwords</label>
+        <input type="checkbox" id="defaultShowPassword"
+               checked={settings.defaultShowPassword} name="defaultShowPassword"
+               onChange={e => update({defaultShowPassword: e.target.checked})}
+        />
+      </div>
+
+      <div className="row checkbox">
         <label htmlFor="defaultAllGroups">Default force all characters</label>
         <input type="checkbox" id="defaultAllGroups"
                checked={settings.defaultAllGroups} name="defaultAllGroups"
