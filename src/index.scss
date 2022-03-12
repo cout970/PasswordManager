@@ -130,7 +130,7 @@ code {
   width: calc(100% - 20px);
   max-width: 700px;
   padding: 20px;
-  border-radius: 3px;
+  border-radius: 5px;
   background: var(--bkg-color);
 }
 
@@ -313,6 +313,7 @@ code {
         display: flex;
         align-items: center;
         flex-flow: row nowrap;
+        justify-content: flex-end;
 
         &.invalid {
           .copy-btn {
@@ -409,21 +410,34 @@ code {
   }
 }
 
-.service-settings, .alphabet-settings, .secret-settings, .app-settings {
+.service-settings, .alphabet-settings, .secret-settings, .export-settings, .app-settings {
   padding: 10px;
 
   h3 {
     font-size: 1rem;
   }
 
+  .sub-settings {
+    margin-top: 10px;
+    padding-left: 20px;
+    padding-top: 1px;
+    padding-bottom: 10px;
+    //outline: 1px solid var(--input-border-color);
+  }
+
   .row {
     display: flex;
     flex-flow: row nowrap;
     justify-content: space-between;
+    align-items: center;
     margin-top: 10px;
 
     &.vertical {
       flex-flow: column;
+    }
+
+    &.centered {
+      justify-content: center;
     }
 
     &.invalid {
@@ -434,14 +448,25 @@ code {
 
     @media(max-width: 500px) {
       flex-flow: column;
+      align-items: stretch;
+
       &.checkbox {
         flex-flow: row nowrap;
+        align-items: center;
       }
     }
 
-    label {
+    &.flex label {
       display: flex;
       align-items: center;
+    }
+
+    label {
+
+      a {
+        margin-left: 5px;
+        margin-right: 5px;
+      }
 
       @media(max-width: 500px) {
         margin-bottom: 3px;
@@ -454,6 +479,8 @@ code {
 
     &.checkbox label {
       cursor: pointer;
+      user-select: none;
+      margin-right: 5px;
     }
 
     input {
@@ -480,7 +507,7 @@ code {
     }
   }
 
-  .remove-btn, .nuke-btn {
+  .remove-btn, .nuke-btn, .load-btn {
     margin-top: 10px
   }
 }
@@ -519,15 +546,35 @@ code {
 
     .actions {
       display: flex;
-      flex-flow: row nowrap;
-      margin-top: 10px;
+      flex-flow: column;
       gap: 10px;
+      padding-bottom: 10px;
+      padding-top: 0;
+
+      .actions-import, .actions-export {
+        display: flex;
+        flex-flow: row nowrap;
+        justify-content: center;
+        gap: 10px;
+      }
+
+      .row.checkbox {
+        margin: 0;
+      }
     }
   }
 }
 
 .app-settings {
   padding: 0 20px;
+
+  @media (max-width: 500px) {
+    padding: 0;
+
+    .sub-settings {
+      padding-left: 10px;
+    }
+  }
 }
 
 // Random
@@ -637,6 +684,15 @@ textarea {
 
   &:hover {
     background: var(--hover-color);
+  }
+
+  &:disabled {
+    background: var(--bkg-l-color);
+    cursor: not-allowed;
+
+    &:hover {
+      background: var(--bkg-l-color);
+    }
   }
 }
 

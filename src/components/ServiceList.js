@@ -85,7 +85,6 @@ export function createService() {
  */
 export function updateValidationChecks(service, masterPassword) {
   service.masterCheck = hashPasswordWithSalt(masterPassword);
-  console.log('Here: ' + service.name);
 }
 
 /**

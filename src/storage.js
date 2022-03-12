@@ -53,6 +53,38 @@ export function getSettings() {
     settings.darkTheme = true;
   }
 
+  if (typeof settings.externalServiceLoad !== 'boolean') {
+    settings.externalServiceLoad = false;
+  }
+
+  if (typeof settings.externalServiceStore !== 'boolean') {
+    settings.externalServiceStore = false;
+  }
+
+  if (typeof settings.externalServiceUrl !== 'string') {
+    settings.externalServiceUrl = '';
+  }
+
+  if (typeof settings.externalServiceHost !== 'string') {
+    settings.externalServiceHost = 'https://ps.cout970.net';
+  }
+
+  if (typeof settings.externalServiceAccount !== 'string') {
+    settings.externalServiceAccount = '';
+  }
+
+  if (typeof settings.externalServicePassword !== 'string') {
+    settings.externalServicePassword = '';
+  }
+
+  if (typeof settings.externalServiceRegister !== 'boolean') {
+    settings.externalServiceRegister = true;
+  }
+
+  if (typeof settings.externalServiceUpdate !== 'boolean') {
+    settings.externalServiceUpdate = false;
+  }
+
   return settings;
 }
 
@@ -112,6 +144,18 @@ export function loadSecrets() {
 
 export function saveSecrets(secrets) {
   getLocalStorage().setItem('secrets', serializeSecrets(secrets) || '');
+}
+
+/**
+ * Attempt to retrieve the selected tab
+ * @returns {string}
+ */
+export function loadSelectedTab() {
+  return getLocalStorage().getItem('selectedTab');
+}
+
+export function saveSelectedTab(tab) {
+  getLocalStorage().setItem('selectedTab', tab);
 }
 
 /**

@@ -9,10 +9,12 @@ import {
   loadAlphabets,
   loadMasterPassword,
   loadSecrets,
+  loadSelectedTab,
   loadServices,
   saveAlphabets,
   saveMasterPassword,
   saveSecrets,
+  saveSelectedTab,
   saveServices,
   setSettings,
 } from '../storage';
@@ -24,14 +26,15 @@ export default function App() {
   const [services, setServices] = useState(loadServices());
   const [secrets, setSecrets] = useState(loadSecrets());
   const [currentSettings, setCurrentSettings] = useState(getSettings);
-  const [tab, setTab] = useState('services');
+  const [tab, setTab] = useState(loadSelectedTab() || 'services');
 
   useEffect(_ => {
     saveMasterPassword(masterPassword);
     saveAlphabets(alphabets);
     saveServices(services);
     saveSecrets(secrets);
-  }, [masterPassword, alphabets, services, secrets]);
+    saveSelectedTab(tab);
+  }, [masterPassword, alphabets, services, secrets, tab]);
 
   useEffect(_ => {
     if (currentSettings.darkTheme) {
@@ -140,6 +143,7 @@ export default function App() {
                   services={services}
                   secrets={secrets}
                   settings={currentSettings}
+                  setSettings={updateSettings}
                   onDataImport={onDataImport}/>
           : ''}
 

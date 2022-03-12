@@ -16,14 +16,19 @@ export function AppSettings({settings, setSettings}) {
     <h2>Settings</h2>
 
     <div className="row checkbox">
-      <label htmlFor="storeSettings">Store settings</label>
+      <label htmlFor="storeSettings">
+        Store settings on
+        <a href="https://www.w3schools.com/html/html5_webstorage.asp" target="_blank" rel="noreferrer">
+          Local Storage
+        </a>
+      </label>
       <input type="checkbox" id="storeSettings"
              checked={settings.storeSettings} name="storeSettings"
              onChange={e => update({storeSettings: e.target.checked})}
       />
     </div>
 
-    {settings.storeSettings ? <>
+    {settings.storeSettings ? <div className="sub-settings">
 
       <div className="row checkbox">
         <label htmlFor="darkTheme">Dark theme</label>
@@ -73,8 +78,80 @@ export function AppSettings({settings, setSettings}) {
         />
       </div>
 
-    </> : ''}
+    </div> : ''}
 
-    <button className="btn btn-danger nuke-btn" onClick={nuke}>Nuke all stored data</button>
+    <div className="row checkbox">
+      <label htmlFor="externalServiceLoad">Load settings from an external service</label>
+      <input type="checkbox" id="externalServiceLoad"
+             checked={settings.externalServiceLoad} name="externalServiceLoad"
+             onChange={e => update({externalServiceLoad: e.target.checked})}
+      />
+    </div>
+
+    {settings.externalServiceLoad ? <div className="sub-settings">
+
+      <div className="row">
+        <label htmlFor="externalServiceUrl">Settings URL</label>
+        <input type="text" id="externalServiceUrl"
+               value={settings.externalServiceUrl} name="externalServiceUrl"
+               onChange={e => update({externalServiceUrl: e.target.value})}
+        />
+      </div>
+
+    </div> : ''}
+
+    <div className="row checkbox">
+      <label htmlFor="externalServiceStore">Store settings on an external service</label>
+      <input type="checkbox" id="externalServiceStore"
+             checked={settings.externalServiceStore} name="externalServiceStore"
+             onChange={e => update({externalServiceStore: e.target.checked})}
+      />
+    </div>
+
+    {settings.externalServiceStore ? <div className='sub-settings'>
+
+      <div className="row">
+        <label htmlFor="externalServiceHost">Host</label>
+        <input type="text" id="externalServiceHost"
+               value={settings.externalServiceHost} name="externalServiceHost"
+               onChange={e => update({externalServiceHost: e.target.value})}
+        />
+      </div>
+
+      <div className="row">
+        <label htmlFor="externalServiceAccount">Account name</label>
+        <input type="text" id="externalServiceAccount"
+               value={settings.externalServiceAccount} name="externalServiceAccount"
+               onChange={e => update({externalServiceAccount: e.target.value})}
+        />
+      </div>
+
+      <div className="row">
+        <label htmlFor="externalServicePassword">Account password</label>
+        <input type="text" id="externalServicePassword"
+               value={settings.externalServicePassword} name="externalServicePassword"
+               onChange={e => update({externalServicePassword: e.target.value})}
+        />
+      </div>
+
+      <div className="row checkbox">
+        <label htmlFor="externalServiceRegister">Create account if not exists</label>
+        <input type="checkbox" id="externalServiceRegister"
+               checked={settings.externalServiceRegister} name="externalServiceRegister"
+               onChange={e => update({externalServiceRegister: e.target.checked})}
+        />
+      </div>
+
+      <div className="row checkbox">
+        <label htmlFor="externalServiceUpdate">Override remote file</label>
+        <input type="checkbox" id="externalServiceUpdate"
+               checked={settings.externalServiceUpdate} name="externalServiceUpdate"
+               onChange={e => update({externalServiceUpdate: e.target.checked})}
+        />
+      </div>
+
+    </div> : ''}
+
+    <button className="btn btn-danger nuke-btn" onClick={nuke}>Nuke all locally stored data</button>
   </div>;
 }

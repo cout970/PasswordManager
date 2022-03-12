@@ -1,4 +1,4 @@
-import {useState} from 'react';
+import {useRef, useState} from 'react';
 import {checkPasswordWithSalt, decrypt, downloadAsFile, encrypt, hashPasswordWithSalt, randId, sha512} from '../util';
 import {
   deserializeAlphabets,
@@ -10,11 +10,14 @@ import {
   serializeServices,
   serializeSettings,
 } from '../serialize';
+import {externalStoreSettings, retrievePaste} from '../api';
 
-export default function Export({masterPassword, alphabets, services, secrets, settings, onDataImport}) {
+export default function Export({masterPassword, alphabets, services, secrets, settings, setSettings, onDataImport}) {
   const [text, setText] = useState('');
+  const [override, setOverride] = useState(false);
   const [exportResult, setExportResult] = useState('');
   const [exportIsError, setExportIsError] = useState(false);
+  const auxInput = useRef();
 
   const exportData = (target) => {
     let date = (new Date()).toISOString();
@@ -29,17 +32,47 @@ export default function Export({masterPassword, alphabets, services, secrets, se
     data = JSON.stringify(data, null, 2);
 
     if (target === 'file') {
-      downloadAsFile(`settings-${date}.txt`, data);
-    } else {
-      setText(data);
+      downloadAsFile(`settings-${date}.json`, data);
+      setExportResult('Successfully exported settings');
+      setExportIsError(false);
+      return;
     }
-    setExportResult('Successfully exported settings');
-    setExportIsError(false);
+
+    if (target === 'textarea') {
+      setText(data);
+      setExportResult('Successfully exported settings');
+      setExportIsError(false);
+      return;
+    }
+
+    if (target === 'external') {
+      externalStoreSettings(settings, data).then(url => {
+        setExportResult('Successfully exported settings');
+        setExportIsError(false);
+        setSettings({...settings, externalServiceUrl: url});
+      }, e => {
+        console.error(e);
+        setExportResult('Unable to store setting in external service');
+        setExportIsError(true);
+      });
+      return;
+    }
+
+    console.error('Invalid target: ' + target);
   };
 
-  const importData = (override) => {
+  const importData = async (target) => {
+    let data;
     try {
-      let data = JSON.parse(text);
+      if (target === 'textarea') {
+        data = text;
+      } else if (target === 'file') {
+        data = await askUserForFile();
+      } else if (target === 'external') {
+        data = await retrievePaste(settings.externalServiceUrl);
+      }
+
+      data = JSON.parse(data);
 
       if (!data) {
         setExportResult('Invalid data');
@@ -93,7 +126,6 @@ export default function Export({masterPassword, alphabets, services, secrets, se
       } else {
         if (window.confirm('Are you sure you want to merge the current settings with the new settings?')) {
           let newItems = mergeSettings(items, {alphabets, services, secrets, settings});
-          console.log(newItems);
           onDataImport(newItems);
           setExportResult('Successfully importer settings');
           setExportIsError(false);
@@ -117,6 +149,59 @@ export default function Export({masterPassword, alphabets, services, secrets, se
         ? <div className={exportIsError ? 'export-result error' : 'export-result success'}>{exportResult}</div>
         : ''}
 
+      <div className="actions export-settings">
+        <h3>Import from</h3>
+        <div className="actions-import">
+          <button className="btn"
+                  onClick={_ => importData('textarea')}
+                  title="Load config from the textarea"
+                  disabled={!text || !masterPassword}>
+            Textarea
+          </button>
+          <button className="btn"
+                  onClick={_ => importData('file')}
+                  title="Load config from a file"
+                  disabled={!masterPassword}>
+            File
+          </button>
+          <button className="btn"
+                  onClick={_ => importData('external')}
+                  title="Load config from the external service"
+                  disabled={!settings.externalServiceLoad || !settings.externalServiceUrl || !masterPassword}>
+            External service
+          </button>
+        </div>
+
+        <div className="row checkbox centered">
+          <label htmlFor="override">Override instead of merge configs</label>
+          <input id="override" type="checkbox" name="override"
+                 checked={override}
+                 onChange={e => setOverride(e.target.checked)}/>
+        </div>
+
+        <h3>Export to</h3>
+        <div className="actions-export">
+          <button className="btn"
+                  onClick={_ => exportData('textarea')}
+                  title="Export config into the textarea">
+            Textarea
+          </button>
+          <button className="btn"
+                  onClick={_ => exportData('file')}
+                  title="Export config into a file and download the file">
+            File
+          </button>
+          <button className="btn"
+                  onClick={_ => exportData('external')}
+                  disabled={!settings.externalServiceStore || !settings.externalServiceAccount}
+                  title="Export config to the configured external service">
+            External service
+          </button>
+
+          <input id="file-input" type="file" name="aux-file-upload" style={{display: 'none'}} ref={auxInput}/>
+        </div>
+      </div>
+
       <div className="textarea-wrapper">
         <textarea name="export-import"
                   id="export-import"
@@ -126,30 +211,6 @@ export default function Export({masterPassword, alphabets, services, secrets, se
         />
       </div>
       <small>Export data is encrypted with AES using the master password</small>
-      <div className="actions">
-        <button className="btn"
-                onClick={_ => importData(true)}
-                title="Override current config from the textarea"
-                disabled={!text || !masterPassword}>
-          Import and override
-        </button>
-        <button className="btn"
-                onClick={_ => importData(false)}
-                title="Merger the current config with the config in the textarea"
-                disabled={!text || !masterPassword}>
-          Import and merge
-        </button>
-        <button className="btn"
-                onClick={exportData.bind(null, 'text')}
-                title="Export the current config into the textarea">
-          Export to textarea
-        </button>
-        <button className="btn"
-                onClick={exportData.bind(null, 'file')}
-                title="Export and download the current config">
-          Export to file
-        </button>
-      </div>
     </div>
   </div>;
 }
@@ -213,13 +274,6 @@ function mergeLists(a, b, keyProp, cmp) {
     if (byKey.has(alpha[keyProp])) {
       let other = byKey.get(alpha[keyProp]);
 
-      console.log([
-        alpha[keyProp],
-        alpha,
-        other,
-        cmp(alpha, other)
-      ]);
-
       if (!cmp(alpha, other)) {
         // Different value, cannot ignore
         let i = 0;
@@ -237,4 +291,28 @@ function mergeLists(a, b, keyProp, cmp) {
   });
 
   return [...byKey.values()];
+}
+
+function askUserForFile() {
+  let input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'application/json, text/plain';
+
+  let promise = new Promise((resolve, reject) => {
+    input.onchange = e => {
+      let file = e.target.files[0];
+
+      let reader = new FileReader();
+      reader.readAsText(file, 'UTF-8');
+      reader.onload = readerEvent => {
+        let content = readerEvent.target.result;
+        resolve(content);
+      };
+      reader.onerror = e => {
+        reject(e);
+      }
+    };
+  });
+  input.click();
+  return promise;
 }
