@@ -13,7 +13,7 @@ export function sha512(text) {
 }
 
 /**
- * Generates a random integer between 0 and 99999999
+ * Generates a random string
  * @returns {string}
  */
 export function randId() {
@@ -22,6 +22,14 @@ export function randId() {
   }
   // Fallback if crypto is not supported
   return ((Math.random() * 99999999) | 0) + '';
+}
+
+/**
+ * Generates a random sequence of bytes and returns it as hex digits (max 64 bytes)
+ * @returns {string}
+ */
+export function randomBytes(bytes) {
+  return sha512(randId()).substring(0, bytes || 16);
 }
 
 /**
@@ -221,7 +229,37 @@ export function encrypt(message = '', key = '') {
  * @returns {string}
  */
 export function decrypt(message = '', key = '') {
-  return AES.decrypt(message, sha512(key)).toString(Utf8);
+  try {
+    return AES.decrypt(message, sha512(key)).toString(Utf8);
+  } catch (e) {
+    console.error(e);
+    return '';
+  }
+}
+
+/**
+ * Creates a salted password hash
+ *
+ * @param {string} password
+ * @returns {string}
+ */
+export function hashPasswordWithSalt(password) {
+  let salt = randomBytes(16);
+  let hash = sha512(password + ':' + salt);
+  return hash + ':' + salt;
+}
+
+/**
+ * Verifies that a password matches with a previously hashed password
+ *
+ * @param {string} hash_password
+ * @param {string} password
+ * @returns {boolean}
+ */
+export function checkPasswordWithSalt(hash_password, password) {
+  const [oldHash, salt] = hash_password.split(':', 2);
+  let newHash = sha512(password + ':' + salt);
+  return oldHash === newHash;
 }
 
 /**

@@ -1,4 +1,4 @@
-import {bin2hex, encrypt, hex2bin} from './util';
+import {bin2hex, hex2bin, randId} from './util';
 
 export function serializeServices(service) {
   return service ? JSON.stringify(service) : null;
@@ -32,11 +32,18 @@ export function deserializeAlphabets(json) {
   }
 
   return alphabetsSerializable.map(value => {
-    return {
+    let newVar = {
       ...value,
       summary: hex2bin(value.summary),
       chars: hex2bin(value.chars),
     };
+
+    // Compatibility with older versions
+    if (newVar.code === undefined) {
+      newVar.code = value.id;
+      value.id = randId();
+    }
+    return newVar;
   });
 }
 

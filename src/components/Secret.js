@@ -3,7 +3,7 @@ import {ReactComponent as HideIcon} from '../icons/hide.svg';
 import {ReactComponent as ShowIcon} from '../icons/show.svg';
 import {ReactComponent as GearIcon} from '../icons/gear.svg';
 import {SecretSettings} from './SecretSettings';
-import {decrypt, encrypt, randId, sha512} from '../util';
+import {decrypt, encrypt, randId, randomBytes, sha512} from '../util';
 
 export function Secret({masterPassword, settings, secret, onChange}) {
   const [show, setShow] = useState(false);
@@ -72,7 +72,7 @@ export function decodeSecretContents(masterPassword, contents) {
  * @returns {string}
  */
 export function encodeSecretContents(masterPassword, text) {
-  let salt = randId();
+  let salt = randomBytes(16);
   let key = sha512(masterPassword + ':' + salt);
   let cyphertext = encrypt(text, key);
   return salt + ':' + cyphertext;

@@ -1,4 +1,4 @@
-import {randId, searchBy} from '../util';
+import {hashPasswordWithSalt, randId, searchBy} from '../util';
 import {getAndIncrementId, getSettings} from '../storage';
 import {Service} from './Service';
 import {useState} from 'react';
@@ -7,7 +7,9 @@ export function ServiceList({masterPassword, alphabets, settings, services, setS
   const [search, setSearch] = useState('');
 
   const addService = () => {
-    setServices([...services, createService()]);
+    let service = createService();
+    updateValidationChecks(service, masterPassword);
+    setServices([...services, service]);
     setSearch('');
   };
 
@@ -15,7 +17,9 @@ export function ServiceList({masterPassword, alphabets, settings, services, setS
     if (typeof newValue === 'string') {
       setServices(services.filter(service => service.id !== newValue));
     } else {
-      setServices(services.map(service => service.id === newValue.id ? validateService(newValue) : service));
+      newValue = validateService(newValue);
+      updateValidationChecks(newValue, masterPassword);
+      setServices(services.map(service => service.id === newValue.id ? newValue : service));
     }
   };
 
@@ -70,8 +74,18 @@ export function createService() {
     alphabet: 'default',
     allGroups: settings.defaultAllGroups,
     useRandomSeed: settings.defaultRandomSeed,
+    masterCheck: '',
   };
+}
 
+/**
+ * Store a hash of the password to check if there are mismatches in the future
+ * @param service
+ * @param masterPassword
+ */
+export function updateValidationChecks(service, masterPassword) {
+  service.masterCheck = hashPasswordWithSalt(masterPassword);
+  console.log('Here: ' + service.name);
 }
 
 /**
@@ -117,6 +131,10 @@ export function validateService(service_input) {
 
   if (service.useRandomSeed !== true && service.useRandomSeed !== false) {
     service.useRandomSeed = false;
+  }
+
+  if (service.masterCheck) {
+    service.masterCheck = '';
   }
 
   return service;

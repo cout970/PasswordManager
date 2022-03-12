@@ -8,6 +8,7 @@ export function AppSettings({settings, setSettings}) {
   const nuke = () => {
     if (window.confirm('Are you sure you want to permanently delete all data stored in by this app?')) {
       nukeAllData();
+      setSettings({});
     }
   };
 

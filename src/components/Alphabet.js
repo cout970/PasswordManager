@@ -2,7 +2,7 @@ import {ReactComponent as GearIcon} from '../icons/gear.svg';
 import {useState} from 'react';
 import {AlphabetSettings} from './AlphabetSettings';
 
-export function Alphabet({alphabet, onChange}) {
+export function Alphabet({alphabet, alphabets, onChange}) {
   const [editing, setEditing] = useState(false);
 
   return <div className={editing ? 'alphabet editing' : 'alphabet'}>
@@ -16,6 +16,6 @@ export function Alphabet({alphabet, onChange}) {
         </button>
       </div>
     </div>
-    {editing ? <AlphabetSettings key="settings" alphabet={alphabet} onChange={onChange}/> : ''}
+    {editing ? <AlphabetSettings key="settings" alphabet={alphabet} alphabets={alphabets} onChange={onChange}/> : ''}
   </div>;
 }

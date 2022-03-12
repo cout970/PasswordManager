@@ -7,11 +7,14 @@ import {AppSettings} from './AppSettings';
 import {
   getSettings,
   loadAlphabets,
-  loadMasterPassword, loadSecrets,
+  loadMasterPassword,
+  loadSecrets,
   loadServices,
   saveAlphabets,
-  saveMasterPassword, saveSecrets,
-  saveServices, setSettings,
+  saveMasterPassword,
+  saveSecrets,
+  saveServices,
+  setSettings,
 } from '../storage';
 import {SecretList} from './SecretList';
 
@@ -27,7 +30,7 @@ export default function App() {
     saveMasterPassword(masterPassword);
     saveAlphabets(alphabets);
     saveServices(services);
-    saveSecrets(secrets, masterPassword);
+    saveSecrets(secrets);
   }, [masterPassword, alphabets, services, secrets]);
 
   useEffect(_ => {
@@ -43,13 +46,17 @@ export default function App() {
   const onDataImport = data => {
     if (data.alphabets) {
       setAlphabets(data.alphabets);
+      saveAlphabets(data.alphabets);
     }
     if (data.services) {
       setServices(data.services);
+      saveServices(data.services);
     }
     if (data.secrets) {
       setSecrets(data.secrets);
+      saveSecrets(data.secrets);
     }
+
     if (data.settings) {
       updateSettings(data.settings);
     }
@@ -60,6 +67,9 @@ export default function App() {
     setCurrentSettings(getSettings());
     // erase password if the settings change
     saveMasterPassword(masterPassword);
+    setAlphabets(loadAlphabets());
+    setServices(loadServices());
+    setSecrets(loadSecrets());
   };
 
   return <div className="app">

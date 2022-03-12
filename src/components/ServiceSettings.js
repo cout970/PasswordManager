@@ -25,6 +25,7 @@ export function ServiceSettings({service, alphabets, onChange}) {
 
     <div className="row">
       <label htmlFor={service.id + '-code'}>ID <WarningIcon
+        className="help-icon"
         title="Changing this value will change the generated passwords"/></label>
       <input type="text" id={service.id + '-code'}
              value={service.code} name="code"
@@ -47,7 +48,7 @@ export function ServiceSettings({service, alphabets, onChange}) {
               onChange={e => update({alphabet: e.target.value})}
       >
         {alphabets.map(value => {
-          return <option key={'alphabet-' + value.id} value={value.id}>{value.name} "{value.summary}"</option>;
+          return <option key={'alphabet-' + value.id} value={value.code}>{value.name} "{value.summary}"</option>;
         })}
       </select>
     </div>

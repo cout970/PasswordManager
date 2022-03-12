@@ -1,7 +1,7 @@
 import {useState} from 'react';
 import {
+  checkPasswordWithSalt,
   copyToClipboard,
-  generatePassword,
   getPassword,
   getPasswordSeed,
   getPasswordSeedWithAllGroups,
@@ -22,6 +22,7 @@ export function Service({service, masterPassword, alphabets, settings, onChange}
   const alphabet = findAlphabetChars(service.alphabet, alphabets);
   let pass = '';
   let passSeed = '';
+  let validated = true;
 
   if (masterPassword) {
     let seed;
@@ -34,6 +35,10 @@ export function Service({service, masterPassword, alphabets, settings, onChange}
 
     pass = getPassword(seed, alphabet);
     passSeed = ints2hex(seed);
+
+    if (service.masterCheck) {
+      validated = checkPasswordWithSalt(service.masterCheck, masterPassword);
+    }
   }
 
   const copy = () => {
@@ -48,7 +53,7 @@ export function Service({service, masterPassword, alphabets, settings, onChange}
   return <div className={editing ? 'service editing' : 'service'} key={service.id}>
     <div className="first-row">
       <div className="service-name">{service.name}</div>
-      <div className="service-inputs">
+      <div className={validated ? 'service-inputs' : 'service-inputs invalid'}>
         <button className="copy-btn icon-btn" onClick={copy} title="Copy to clipboard">
           {copyAnim
             ? <ClipboardCheckIcon key="clipboard-check-icon" className="checked"/>
@@ -77,7 +82,7 @@ export function Service({service, masterPassword, alphabets, settings, onChange}
 
 function findAlphabetChars(alphabetName, alphabets) {
   for (let alphabet of alphabets) {
-    if (alphabet.id === alphabetName) {
+    if (alphabet.code === alphabetName) {
       return alphabet.chars;
     }
   }

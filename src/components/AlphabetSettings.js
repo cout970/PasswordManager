@@ -1,6 +1,6 @@
 import {ReactComponent as WarningIcon} from '../icons/warning.svg';
 
-export function AlphabetSettings({alphabet, onChange}) {
+export function AlphabetSettings({alphabet, alphabets, onChange}) {
   const update = (changes) => {
     onChange({...alphabet, ...changes});
   };
@@ -11,6 +11,8 @@ export function AlphabetSettings({alphabet, onChange}) {
     }
   };
 
+  let numDuplicates = alphabets.filter(a => a.id !== alphabet.id && a.code === alphabet.code).length;
+
   return <div className="alphabet-settings">
     <div className="row">
       <label htmlFor={alphabet.id + '-name'}>Name</label>
@@ -19,9 +21,23 @@ export function AlphabetSettings({alphabet, onChange}) {
              onChange={e => update({name: e.target.value})}
       />
     </div>
+    <div className={numDuplicates > 0 ? 'row invalid' : 'row'}>
+      <label htmlFor={alphabet.id + '-code'}>
+        ID <WarningIcon className="help-icon" title="Changing this value will break passwords that use this alphabet"/>
+        {numDuplicates > 0 ?
+          <div className="warning-label" title={'There are ' + (numDuplicates + 1) + ' alphabets with this ID'}>
+            Not unique
+          </div> : ''}
+      </label>
+      <input type="text" id={alphabet.id + '-code'}
+             value={alphabet.code} name="code"
+             onChange={e => update({code: e.target.value})}
+      />
+    </div>
     <div className="row">
-      <label htmlFor={alphabet.id + '-chars'}>Characters<WarningIcon
-        title="Changing this value will change the generated passwords"/></label>
+      <label htmlFor={alphabet.id + '-chars'}>
+        Characters <WarningIcon className="help-icon" title="Changing this value will change the generated passwords"/>
+      </label>
       <input type="text" id={alphabet.id + '-chars'}
              value={alphabet.chars} name="chars"
              onChange={e => update({chars: e.target.value})}

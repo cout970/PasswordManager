@@ -7,7 +7,7 @@ export function MasterPassword({value, onChange}) {
       <div className="text-input">
         <input id="master-password"
                type="password"
-               placeholder="master password"
+               placeholder="Enter your master password"
                name="password"
                autoComplete="current-password"
                value={value}
