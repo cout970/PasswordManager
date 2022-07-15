@@ -57,7 +57,7 @@ export function ServiceSettings({service, alphabets, onChange}) {
       <div className="row">
         <label htmlFor={service.id + '-passLen'}>Password length</label>
         <input type="number" min="1" max="255" id={service.id + '-passLen'}
-               value={service.passLen} name="passLen"
+               value={service.passLen + ''} name="passLen"
                onChange={e => update({passLen: e.target.value | 0})}
         />
       </div>

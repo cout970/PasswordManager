@@ -59,6 +59,13 @@ export function defaultAlphabets() {
   return [
     {
       id: randId(),
+      code: 'simple',
+      name: 'Letters and numbers',
+      summary: 'A-Z a-z 0-9',
+      chars: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890',
+    },
+    {
+      id: randId(),
       code: 'default',
       name: 'Default',
       summary: 'Letters, digits and special characters',
@@ -87,13 +94,6 @@ export function defaultAlphabets() {
       summary: 'Uncommon unicode characters',
       // 'ꓯꓭꓛꓷꓱꓞꓨꓩꓘꓶꟽИꟼꓤƧꓕꓵꓥ༽᚛᚜‹›⁅⁆⁽⁾₍₎⅀∁∂∃∄∈∉∊∋∌∍∑∕∖√∛∜∝∟∠∡∢∤∦∫∬∭∮∯∰∱∲∳∹∻∼∽∾∿≀≁≂≃≄≅≆≇≈≉≊≋≌≒≓≔≕≟≠≢≤≥≦≧≨≩≪≫≮≯≰≱≲≳≴≵≶≷≸≹≺≻≼≽≾≿⊀⊁⊂⊃'
       chars: hex2bin('a4efa4eda4dba4f7a4f1a4dea4e8a4e9a4d8a4f6a7fd0418a7fca4e401a7a4d5a4f5a4e50f3d169b169c2039203a20452046207d207e208d208e2140220122022203220422082209220a220b220c220d221122152216221a221b221c221d221f22202221222222242226222b222c222d222e222f22302231223222332239223b223c223d223e223f2240224122422243224422452246224722482249224a224b224c2252225322542255225f22602262226422652266226722682269226a226b226e226f2270227122722273227422752276227722782279227a227b227c227d227e227f2280228122822283'),
-    },
-    {
-      id: randId(),
-      code: 'simple',
-      name: 'Letters and numbers',
-      summary: 'A-Z a-z 0-9',
-      chars: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890',
     },
     {
       id: randId(),

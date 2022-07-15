@@ -9,7 +9,7 @@ export function ServiceList({masterPassword, alphabets, settings, services, setS
   const addService = () => {
     let service = createService();
     updateValidationChecks(service, masterPassword);
-    setServices([...services, service]);
+    setServices([service, ...services]);
     setSearch('');
   };
 
@@ -71,7 +71,7 @@ export function createService() {
     code: 'service-' + index,
     username: '',
     passLen: settings.defaultPasswordLength,
-    alphabet: 'default',
+    alphabet: 'simple',
     allGroups: settings.defaultAllGroups,
     useRandomSeed: settings.defaultRandomSeed,
     masterCheck: '',

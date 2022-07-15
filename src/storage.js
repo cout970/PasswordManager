@@ -224,12 +224,7 @@ function getLocalStorage() {
     console.error(e);
     // Using fallback
     if (!window.localStorageFallback) {
-      let storage = {};
-      window.localStorageFallback = {
-        getItem: (name) => storage[name],
-        setItem: (name, item) => storage[name] = item,
-        clear: () => storage = {},
-      };
+      window.localStorageFallback = new Storage();
     }
     return window.localStorageFallback;
   }

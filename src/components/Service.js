@@ -2,6 +2,7 @@ import {useState} from 'react';
 import {
   checkPasswordWithSalt,
   copyToClipboard,
+  findAlphabetChars,
   getPassword,
   getPasswordSeed,
   getPasswordSeedWithAllGroups,
@@ -80,12 +81,3 @@ export function Service({service, masterPassword, alphabets, settings, onChange}
   </div>;
 }
 
-function findAlphabetChars(alphabetName, alphabets) {
-  for (let alphabet of alphabets) {
-    if (alphabet.code === alphabetName) {
-      return alphabet.chars;
-    }
-  }
-
-  return alphabets[0].chars;
-}

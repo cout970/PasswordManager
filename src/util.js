@@ -459,3 +459,33 @@ function matches(text, search) {
 
   return weight;
 }
+
+/**
+ * Give an alphabet code and a list of alphabets, finds the characters of the alphabet with the same code.
+ * If the code was not found, returns the characters of the first alphabet
+ *
+ * @param alphabetName {string}
+ * @param alphabets {{code: string, chars: string}[]}
+ * @returns {string}
+ */
+export function findAlphabetChars(alphabetName, alphabets) {
+  for (let alphabet of alphabets) {
+    if (alphabet.code === alphabetName) {
+      return alphabet.chars;
+    }
+  }
+
+  return alphabets[0].chars;
+}
+
+/**
+ * Capitalizes a string, sets the first character to uppercase and sets the rest to lowercase
+ * If the string is empty or null it will return an empty string
+ *
+ * @param str {string}
+ * @returns {string}
+ */
+export function capitalize(str) {
+  if (!str) return '';
+  return str[0].toUpperCase() + str.slice(1).toLowerCase();
+}

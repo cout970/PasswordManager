@@ -231,7 +231,7 @@ code {
   margin-bottom: 10px;
 }
 
-.service-list, .alphabet-list, .secret-list {
+.service-list, .alphabet-list, .secret-list, .single-use {
   display: flex;
   flex-flow: column;
   width: 100%;
@@ -268,28 +268,6 @@ code {
     border-radius: 5px;
     margin-bottom: 10px;
 
-    .copy-btn {
-      margin-right: 5px;
-
-      .checked {
-        color: var(--icon-hover-color);
-        filter: drop-shadow(1px 1px 2px var(--shadow-color));
-        animation: icon-checked 0.25s ease-out;
-
-        @keyframes icon-checked {
-          from {
-            transform: translateY(0px);
-          }
-          50% {
-            transform: translateY(-5px);
-          }
-          to {
-            transform: translateY(0px);
-          }
-        }
-      }
-    }
-
     .first-row {
       display: flex;
       align-items: center;
@@ -322,6 +300,7 @@ code {
             user-select: none;
             pointer-events: none;
           }
+
           .pass-input {
             color: var(--error-color);
             cursor: not-allowed;
@@ -353,11 +332,6 @@ code {
           max-width: 100%;
           flex-grow: 1;
         }
-      }
-
-      .show-btn, .hide-btn {
-        margin-left: 3px;
-        margin-right: 3px;
       }
 
       .alphabet-name {
@@ -405,8 +379,101 @@ code {
     }
   }
 
+  .copy-btn {
+    margin-right: 5px;
+
+    .checked {
+      color: var(--icon-hover-color);
+      filter: drop-shadow(1px 1px 2px var(--shadow-color));
+      animation: icon-checked 0.25s ease-out;
+
+      @keyframes icon-checked {
+        from {
+          transform: translateY(0px);
+        }
+        50% {
+          transform: translateY(-5px);
+        }
+        to {
+          transform: translateY(0px);
+        }
+      }
+    }
+  }
+
+  .show-btn, .hide-btn {
+    margin-left: 3px;
+    margin-right: 3px;
+  }
+
   .alphabet .edit-btn {
     margin-left: 5px;
+  }
+
+  .single-use-contents {
+    display: flex;
+    flex-flow: column;
+    align-items: center;
+
+    .first-row {
+      display: flex;
+      align-items: center;
+      flex-flow: row nowrap;
+      justify-content: center;
+
+      margin-top: 20px;
+      margin-bottom: 20px;
+
+      @media(max-width: 500px) {
+        width: 100%;
+      }
+
+      .pass-input {
+        height: 30px;
+        min-width: 300px;
+        border-radius: 5px;
+        text-align: center;
+        font-size: 1.2em;
+
+        @media(max-width: 500px) {
+          min-width: min(200px, 60vw);
+        }
+
+        margin-right: 5px;
+        margin-left: 5px;
+      }
+    }
+
+    .row {
+      display: flex;
+      flex-flow: row nowrap;
+      justify-content: space-between;
+      margin-top: 10px;
+      max-width: 300px;
+      flex-flow: column;
+      align-items: stretch;
+
+      label {
+        margin-bottom: 3px;
+      }
+
+      #single-use-code {
+        height: 30px;
+      }
+    }
+
+    .list-footer {
+      width: 100%;
+      margin-top: 20px;
+      display: flex;
+      justify-content: center;
+
+      .add-service {
+        min-width: 8rem;
+        width: 100%;
+        max-width: 300px;
+      }
+    }
   }
 }
 
@@ -432,6 +499,16 @@ code {
     align-items: center;
     margin-top: 10px;
 
+    @media(max-width: 500px) {
+      flex-flow: column;
+      align-items: stretch;
+
+      &.checkbox {
+        flex-flow: row nowrap;
+        align-items: center;
+      }
+    }
+
     &.vertical {
       flex-flow: column;
     }
@@ -443,16 +520,6 @@ code {
     &.invalid {
       input[type="text"] {
         color: var(--error-color);
-      }
-    }
-
-    @media(max-width: 500px) {
-      flex-flow: column;
-      align-items: stretch;
-
-      &.checkbox {
-        flex-flow: row nowrap;
-        align-items: center;
       }
     }
 
@@ -522,13 +589,13 @@ code {
       padding: 10px;
       background: mix(gold, black, 30%);
       border: 1px solid gold;
-      color:  mix(gold, white, 30%);
+      color: mix(gold, white, 30%);
       border-radius: 5px;
       margin-top: 10px;
       margin-bottom: 10px;
 
       &.success {
-        background:  transparentize(mix(green, white, 30%), 0.25);
+        background: transparentize(mix(green, white, 30%), 0.25);
         border: 1px solid green;
         color: mix(green, black, 30%);
       }

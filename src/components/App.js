@@ -19,6 +19,7 @@ import {
   setSettings,
 } from '../storage';
 import {SecretList} from './SecretList';
+import {SingleUse} from './SingleUse';
 
 export default function App() {
   const [masterPassword, setMasterPassword] = useState(loadMasterPassword());
@@ -26,7 +27,7 @@ export default function App() {
   const [services, setServices] = useState(loadServices());
   const [secrets, setSecrets] = useState(loadSecrets());
   const [currentSettings, setCurrentSettings] = useState(getSettings);
-  const [tab, setTab] = useState(loadSelectedTab() || 'services');
+  const [tab, setTab] = useState(loadSelectedTab() || 'single-use');
 
   useEffect(_ => {
     saveMasterPassword(masterPassword);
@@ -86,6 +87,11 @@ export default function App() {
 
         <div className="tabs">
           <div className="inner">
+            <button className={tab === 'single' ? 'btn selected' : 'btn'}
+                    onClick={_ => setTab('single')}>
+              Single use
+            </button>
+
             <button className={tab === 'services' ? 'btn selected' : 'btn'}
                     onClick={_ => setTab('services')}>
               Services
@@ -112,6 +118,18 @@ export default function App() {
             </button>
           </div>
         </div>
+
+        {tab === 'single' ?
+          <SingleUse key="single-list"
+                     masterPassword={masterPassword}
+                     alphabets={alphabets}
+                     settings={currentSettings}
+                     services={services}
+                     setServices={serv => {
+                       setServices(serv);
+                       setTab('services');
+                     }}/>
+          : ''}
 
         {tab === 'services' ?
           <ServiceList key="service-list"
