@@ -1,7 +1,7 @@
 # Password Manager
 
 Free password manager that doesn't store credentials, instead generates them every time you need a password. Since the
-generation algorithm and the input parameters are the same you will always get the same passwords.
+generation algorithm and the input parameters are the same, you will always get the same passwords.
 
 ### [Try it online here!](https://nss.cout970.net)
 
@@ -15,9 +15,12 @@ password using an alphabet: a list of valid characters that can be used on a pas
 The user provides a master password, the name of the service and a few configuration options and the tool generates a
 unique password.
 
-The only things stored (for convenience) are the services, alphabets and settings, since they are part of the generation
-of the passwords and must be the same to generate the same values.
+The only things stored (for convenience) are the services, alphabets and settings, since they affect the way passwords are generated
+and need to be the same.
 
 ### Previous version
 
-The previous version is still available [here](https://sss.cout970.net)
+If you find any annoying bug, you can use the [previous version here](https://nss.bak.cout970.net) until it gets fixed on the main site.
+
+The original password generator can still be found [here](https://sss.cout970.net).
+There is a remake of the original version that can be found at [sss.pagoru.es](http://sss.pagoru.es/).
