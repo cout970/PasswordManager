@@ -3,7 +3,7 @@ import {ReactComponent as HideIcon} from '../icons/hide.svg';
 import {ReactComponent as ShowIcon} from '../icons/show.svg';
 import {ReactComponent as GearIcon} from '../icons/gear.svg';
 import {SecretSettings} from './SecretSettings';
-import {decrypt, encrypt, randId, randomBytes, sha512} from '../util';
+import {decrypt, encrypt, randomBytes, sha512} from '../util';
 
 export function Secret({masterPassword, settings, secret, onChange}) {
   const [show, setShow] = useState(false);

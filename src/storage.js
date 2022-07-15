@@ -1,4 +1,4 @@
-import {decrypt, encrypt, hex2bin, randId, randomBytes} from './util';
+import {decrypt, encrypt, randomBytes} from './util';
 import {
   deserializeAlphabets, deserializeSecrets,
   deserializeServices,
