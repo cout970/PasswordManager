@@ -1,6 +1,10 @@
 import {nukeAllData} from '../storage';
+import QRCode from 'react-qr-code';
+import {useState} from 'react';
 
 export function AppSettings({settings, setSettings}) {
+  const [showQr, setShowQr] = useState(false);
+
   const update = (changes) => {
     setSettings({...settings, ...changes});
   };
@@ -11,6 +15,8 @@ export function AppSettings({settings, setSettings}) {
       setSettings({});
     }
   };
+
+  const url = showQr ? 'https://nss.cout970.net/?cfg=' + encodeURIComponent(JSON.stringify(settings)) : '';
 
   return <div className="app-settings">
     <h2>Settings</h2>
@@ -108,7 +114,7 @@ export function AppSettings({settings, setSettings}) {
       />
     </div>
 
-    {settings.externalServiceStore ? <div className='sub-settings'>
+    {settings.externalServiceStore ? <div className="sub-settings">
 
       <div className="row">
         <label htmlFor="externalServiceHost">Host</label>
@@ -152,6 +158,23 @@ export function AppSettings({settings, setSettings}) {
 
     </div> : ''}
 
-    <button className="btn btn-danger nuke-btn" onClick={nuke}>Nuke all locally stored data</button>
+
+    <div className="keep-apart mt">
+      <button className="btn btn-danger nuke-btn" onClick={nuke}>
+        Nuke all locally stored data
+      </button>
+
+      <button className="btn" onClick={_ => setShowQr(!showQr)}>
+        {!showQr ? 'Show settings qr' : 'Hide settings qr'}
+      </button>
+    </div>
+
+    {showQr ?
+      <div className="qrcode-wrapper mt">
+        <div className="qrcode-background">
+          <QRCode value={url} title={url} size={256}/>
+        </div>
+      </div>
+      : ''}
   </div>;
 }

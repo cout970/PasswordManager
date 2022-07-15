@@ -574,7 +574,7 @@ code {
     }
   }
 
-  .remove-btn, .nuke-btn, .load-btn {
+  .remove-btn, .load-btn {
     margin-top: 10px
   }
 }
@@ -771,4 +771,35 @@ textarea {
   color: var(--error-color);
   cursor: help;
   margin-left: 5px;
+}
+
+.keep-apart {
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-between;
+}
+
+.qrcode-wrapper {
+  display: flex;
+  width: 100%;
+  justify-content: flex-end;
+
+  .qrcode-background {
+    background: white;
+    padding: 4px;
+    width: min-content;
+    margin: 4px;
+
+    svg {
+      display: block;
+    }
+  }
+}
+
+.mt {
+  margin-top: 10px;
+}
+
+.mb {
+  margin-top: 10px;
 }

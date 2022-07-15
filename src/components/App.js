@@ -30,12 +30,12 @@ export default function App() {
   const [tab, setTab] = useState(loadSelectedTab() || 'single-use');
 
   useEffect(_ => {
-    saveMasterPassword(masterPassword);
+    saveMasterPassword(masterPassword, currentSettings);
     saveAlphabets(alphabets);
     saveServices(services);
     saveSecrets(secrets);
     saveSelectedTab(tab);
-  }, [masterPassword, alphabets, services, secrets, tab]);
+  }, [currentSettings, masterPassword, alphabets, services, secrets, tab]);
 
   useEffect(_ => {
     if (currentSettings.darkTheme) {
@@ -68,9 +68,10 @@ export default function App() {
 
   const updateSettings = (n) => {
     setSettings(n);
-    setCurrentSettings(getSettings());
+    let newSettings = getSettings();
+    setCurrentSettings(newSettings);
     // erase password if the settings change
-    saveMasterPassword(masterPassword);
+    saveMasterPassword(masterPassword, newSettings);
     setAlphabets(loadAlphabets());
     setServices(loadServices());
     setSecrets(loadSecrets());

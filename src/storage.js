@@ -1,12 +1,117 @@
 import {decrypt, encrypt, randomBytes} from './util';
 import {
-  deserializeAlphabets, deserializeSecrets,
+  deserializeAlphabets,
+  deserializeSecrets,
   deserializeServices,
   deserializeSettings,
-  serializeAlphabets, serializeSecrets,
+  serializeAlphabets,
+  serializeSecrets,
   serializeServices,
 } from './serialize';
 import {defaultAlphabets} from './components/AlphabetList';
+
+/**
+ * Container of data with the same interface as LocalStorage
+ */
+class Storage {
+  constructor(name) {
+    this.storage = {};
+    this.name = name;
+  }
+
+  save() {
+    const local = getLocalStorage();
+    if (local === this) return;
+
+    local.setItem(this.name, JSON.stringify(this.storage));
+  }
+
+  load() {
+    const local = getLocalStorage();
+    if (local === this) return;
+
+    if (local.getItem(this.name)) {
+      this.storage = JSON.parse(local.getItem(this.name));
+    }
+  }
+
+  copyFrom(storage) {
+    for (let i = 0; i < storage.length.length; i++) {
+      const key = storage.key(i);
+      this.storage[key] = storage.getItem(key);
+    }
+  }
+
+  get length() {
+    return Object.keys(this.storage).length;
+  }
+
+  key(index) {
+    return Object.keys(this.storage)[index];
+  }
+
+  getItem(name) {
+    return this.storage[name];
+  }
+
+  setItem(name, item) {
+    this.storage[name] = item;
+    return this;
+  }
+
+  clear() {
+    this.storage = {};
+  }
+}
+
+/**
+ * Gets the list of storages that are saved on LocalStorage
+ * @returns {string[]}
+ */
+export function getStorageNames() {
+  const local = getLocalStorage();
+  const list = [];
+
+  for (let i = 0; i < local.length; i++) {
+    const key = local.key(i);
+
+    if (key.startsWith('storage-')) {
+      list.push(key);
+    }
+  }
+
+  return list;
+}
+
+/**
+ * Gets a storage instance by its name, if it doesn't exist, one is created
+ *
+ * @param name
+ * @returns {*}
+ */
+export function getStorage(name) {
+  window.customStorage = window.customStorage ?? {};
+  const id = name ?? 'storage-default';
+  let storage = window.customStorage[id];
+
+  if (!storage) {
+    storage = new Storage(id);
+    window.customStorage[id] = storage;
+
+    const local = getLocalStorage();
+
+    // Copy settings from old versión
+    if (local.getItem('services')) {
+      storage.copyFrom(local);
+      storage.save();
+      local.removeItem('services');
+    } else {
+      storage.load();
+    }
+  }
+
+  return storage;
+}
 
 /**
  * Get current app settings
@@ -20,7 +125,7 @@ import {defaultAlphabets} from './components/AlphabetList';
  * }}
  */
 export function getSettings() {
-  let json = getLocalStorage().getItem('settings');
+  let json = getStorage().getItem('settings');
   let settings = deserializeSettings(json) || {};
 
   if (typeof settings.storeSettings !== 'boolean') {
@@ -94,7 +199,7 @@ export function getSettings() {
  */
 export function setSettings(newSettings) {
   let settings = {...getSettings(), ...newSettings};
-  getLocalStorage().setItem('settings', serializeServices(settings));
+  getStorage().setItem('settings', serializeServices(settings)).save();
 }
 
 /**
@@ -102,7 +207,7 @@ export function setSettings(newSettings) {
  * @returns {[]}
  */
 export function loadAlphabets() {
-  let json = getLocalStorage().getItem('alphabets');
+  let json = getStorage().getItem('alphabets');
   let alphabets = deserializeAlphabets(json);
   if (!alphabets) {
     alphabets = defaultAlphabets();
@@ -114,7 +219,7 @@ export function saveAlphabets(alphabets) {
   if (!getSettings().storeSettings) {
     return;
   }
-  getLocalStorage().setItem('alphabets', serializeAlphabets(alphabets) || '');
+  getStorage().setItem('alphabets', serializeAlphabets(alphabets) || '').save();
 }
 
 /**
@@ -122,7 +227,7 @@ export function saveAlphabets(alphabets) {
  * @returns {[]}
  */
 export function loadServices() {
-  let json = getLocalStorage().getItem('services');
+  let json = getStorage().getItem('services');
   return deserializeServices(json) || [];
 }
 
@@ -130,7 +235,7 @@ export function saveServices(services) {
   if (!getSettings().storeSettings) {
     return;
   }
-  getLocalStorage().setItem('services', serializeServices(services) || '');
+  getStorage().setItem('services', serializeServices(services) || '').save();
 }
 
 /**
@@ -138,12 +243,12 @@ export function saveServices(services) {
  * @returns {[]}
  */
 export function loadSecrets() {
-  let json = getLocalStorage().getItem('secrets');
+  let json = getStorage().getItem('secrets');
   return deserializeSecrets(json) || [];
 }
 
 export function saveSecrets(secrets) {
-  getLocalStorage().setItem('secrets', serializeSecrets(secrets) || '');
+  getStorage().setItem('secrets', serializeSecrets(secrets) || '').save();
 }
 
 /**
@@ -151,11 +256,11 @@ export function saveSecrets(secrets) {
  * @returns {string}
  */
 export function loadSelectedTab() {
-  return getLocalStorage().getItem('selectedTab');
+  return getStorage().getItem('selectedTab');
 }
 
 export function saveSelectedTab(tab) {
-  getLocalStorage().setItem('selectedTab', tab);
+  getStorage().setItem('selectedTab', tab).save();
 }
 
 /**
@@ -163,29 +268,35 @@ export function saveSelectedTab(tab) {
  * @returns {string}
  */
 export function loadMasterPassword() {
-  let key = getLocalStorage().getItem('master-key');
-  let text = getLocalStorage().getItem('master');
+  let key = getStorage().getItem('master-key');
+  let text = getStorage().getItem('master');
   if (!text || !key) return '';
   return decrypt(text, key) || '';
 }
 
-export function saveMasterPassword(text) {
-  if (!getSettings().storeSettings) {
+/**
+ * Save an encrypted version of the master password, but only if allowed by the config
+ *
+ * @param text {string}
+ * @param settings {{storeSettings: boolean, storeMasterPassword: boolean}}
+ */
+export function saveMasterPassword(text, settings) {
+  if (!settings.storeSettings) {
     return;
   }
 
-  if (!getSettings().storeMasterPassword) {
+  if (!settings.storeMasterPassword) {
     text = '';
   }
 
   try {
-    let key = getLocalStorage().getItem('master-key');
+    let key = getStorage().getItem('master-key');
     if (!key) {
       key = randomBytes(16);
-      getLocalStorage().setItem('master-key', key);
+      getStorage().setItem('master-key', key);
     }
     let pass = encrypt(text || '', key);
-    getLocalStorage().setItem('master', pass);
+    getStorage().setItem('master', pass).save();
   } catch (e) {
     console.error(e);
   }
@@ -197,11 +308,11 @@ export function saveMasterPassword(text) {
  * @returns {number}
  */
 export function getAndIncrementId(name) {
-  let curr = getLocalStorage().getItem('sequence-' + name) || 0;
+  let curr = getStorage().getItem('sequence-' + name) || 0;
   // Force integer
   curr = curr | 0;
   if (isNaN(curr)) curr = 0;
-  getLocalStorage().setItem('sequence-' + name, (curr + 1) + '');
+  getStorage().setItem('sequence-' + name, (curr + 1) + '').save();
   return curr;
 }
 
@@ -241,12 +352,7 @@ function getSessionStorage() {
     console.error(e);
     // Using fallback
     if (!window.sessionStorageFallback) {
-      let storage = {};
-      window.sessionStorageFallback = {
-        getItem: (name) => storage[name],
-        setItem: (name, item) => storage[name] = item,
-        clear: () => storage = {},
-      };
+      window.sessionStorageFallback = new Storage('fallback');
     }
     return window.sessionStorageFallback;
   }
