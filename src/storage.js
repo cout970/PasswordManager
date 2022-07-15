@@ -36,7 +36,7 @@ class Storage {
   }
 
   copyFrom(storage) {
-    for (let i = 0; i < storage.length.length; i++) {
+    for (let i = 0; i < storage.length; i++) {
       const key = storage.key(i);
       this.storage[key] = storage.getItem(key);
     }
@@ -100,13 +100,13 @@ export function getStorage(name) {
 
     const local = getLocalStorage();
 
-    // Copy settings from old versión
-    if (local.getItem('services')) {
+    if (local.getItem(id)) {
+      // Load settings
+      storage.load();
+    } else if (local.getItem('services')) {
+      // Copy settings from old version
       storage.copyFrom(local);
       storage.save();
-      local.removeItem('services');
-    } else {
-      storage.load();
     }
   }
 
