@@ -25,7 +25,7 @@ export function PageAlphabets() {
 
   const [openModal, setOpenModal] = useState(false);
 
-  return <Stack className="page-alphabets">
+  return <Stack className="page page-alphabets">
     <Title order={1}>{t("Alphabets")}</Title>
 
     <ControlsBar

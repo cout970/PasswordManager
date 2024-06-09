@@ -33,7 +33,7 @@ export function PageAccounts() {
     [allAccounts, searchDebounced],
   );
 
-  return <Stack className="page-accounts">
+  return <Stack className="page page-accounts">
     <Title order={1}>{t("Accounts")}</Title>
 
     <Group key="controls" position="apart">

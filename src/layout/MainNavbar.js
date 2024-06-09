@@ -1,6 +1,14 @@
 import '../style/main-navbar.scss';
 import {Navbar, Tooltip, UnstyledButton} from '@mantine/core';
-import {IconAbc, IconHome2, IconLayoutGrid, IconSettings, IconShieldLock, IconUser} from '@tabler/icons-react';
+import {
+  IconAbc,
+  IconFileExport,
+  IconHome2,
+  IconLayoutGrid,
+  IconSettings,
+  IconShieldLock,
+  IconUser
+} from '@tabler/icons-react';
 import {usePage} from "../util/react";
 import {t} from "../util/i18n";
 
@@ -9,6 +17,7 @@ const mainPages = [
   {id: 'services', icon: IconLayoutGrid, label: t("Services")},
   {id: 'secrets', icon: IconShieldLock, label: t("Secrets")},
   {id: 'alphabets', icon: IconAbc, label: t("Alphabets")},
+  {id: 'export', icon: IconFileExport, label: t("Export")},
   'spacer',
   {id: 'accounts', icon: IconUser, label: t("Accounts")},
   {id: 'settings', icon: IconSettings, label: t("Settings")},

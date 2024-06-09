@@ -13,6 +13,7 @@ import {PageAccounts} from "../pages/PageAccounts";
 import {AccountManager} from "../util/account_manager";
 import {PageUnlock} from "../pages/PageUnlock";
 import {PageAlphabets} from "../pages/PageAlphabets";
+import {PageExport} from "../pages/PageExport";
 
 export const AccountContext = createContext(null);
 export const NavigationContext = createContext(null);
@@ -60,6 +61,7 @@ export default function Main() {
             {page === 'services' && <PageServices/>}
             {page === 'secrets' && <PageSecrets/>}
             {page === 'alphabets' && <PageAlphabets/>}
+            {page === 'export' && <PageExport/>}
             {page === 'accounts' && <PageAccounts/>}
             {page === 'settings' && <PageSettings/>}
           </Stack>

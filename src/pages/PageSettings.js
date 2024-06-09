@@ -8,7 +8,7 @@ import {AccountSettingsForm} from "../forms/AccountSettingsForm";
 export function PageSettings() {
   const {account, updateAccount} = useAccount();
 
-  return <Stack className="page-settings">
+  return <Stack className="page page-settings">
     <Title order={1}>{t("Settings")}</Title>
 
     <AccountSettingsForm

@@ -18,7 +18,7 @@ export function PageHome() {
   const [searchFilter, setSearchFilter] = useState('');
   const [openModal, setOpenModal] = useState(false);
 
-  return <Stack className="page-home">
+  return <Stack className="page page-home">
     <Flex justify="space-between" align="center" wrap="wrap" gap="md">
       <Title
         order={1}

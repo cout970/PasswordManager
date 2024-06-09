@@ -26,7 +26,7 @@ export function PageServices() {
 
   const [openModal, setOpenModal] = useState(false);
 
-  return <Stack className="page-services">
+  return <Stack className="page page-services">
     <Title order={1}>{t("Services")}</Title>
 
     <ControlsBar

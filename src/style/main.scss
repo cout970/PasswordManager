@@ -61,4 +61,8 @@ html, body, #root, #root .main-wrapper {
   flex-grow: 1;
   height: 100%;
   width: 100%;
+
+  .page {
+    padding: rem(20);
+  }
 }

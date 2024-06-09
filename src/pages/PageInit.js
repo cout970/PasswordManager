@@ -21,7 +21,7 @@ export function PageInit() {
     gotoPage('home');
   }, [gotoPage, accountManager]);
 
-  return <Stack className="page-home">
+  return <Stack className="page page-home">
     <Modal
       title={<Text size={38}>{t("Let's start")}</Text>}
       opened={true}

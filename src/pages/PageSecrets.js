@@ -26,7 +26,7 @@ export function PageSecrets() {
 
   const [openModal, setOpenModal] = useState(false);
 
-  return <Stack className="page-secrets">
+  return <Stack className="page page-secrets">
     <Title order={1}>{t("Secrets")}</Title>
 
     <ControlsBar
