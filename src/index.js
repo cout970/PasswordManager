@@ -1,11 +1,11 @@
 import React from 'react';
-import './index.scss';
-import App from './components/App';
-import * as Util from './util';
-import * as Storage from './storage';
-import * as Serialize from './serialize';
+import * as Util from './util/util';
+import * as Storage from './util/storage';
+import * as Serialize from './util/serialize';
 import {createRoot} from 'react-dom/client';
-import {getSettings, getStorage, setSettings} from './storage';
+import {loadSettings, getStorage, saveSettings, getLocalStorage} from './util/storage';
+import Main from './layout/Main';
+import {report_error} from "./util/log";
 
 // Copy settings from URL
 const params = new URLSearchParams(window.location.search);
@@ -14,15 +14,19 @@ const params = new URLSearchParams(window.location.search);
 if (params.has('cfg')) {
   try {
     const config = JSON.parse(params.get('cfg'));
+    const local = getLocalStorage();
+    const selected_account = local.getItem("selected_account") || null;
 
-    if (window.confirm('Do you want to replace the current settings?')) {
+    if (selected_account && window.confirm('Do you want to replace the current settings?')) {
+      const storage = getStorage(selected_account);
+
       // We keep a hidden backup, just in case
       getStorage('storage-backup')
-        .setItem('settings', JSON.stringify(getSettings()))
+        .setItem('settings', JSON.stringify(loadSettings(storage)))
         .save();
 
       // Override the config, keeping default values
-      setSettings(config);
+      saveSettings(config, storage);
     }
 
     // Remove the parameter from the url to prevent future activations
@@ -36,13 +40,13 @@ if (params.has('cfg')) {
     window.history.pushState('', '', start);
   } catch (e) {
     // Something went wrong, probably the url was wrong
-    console.error(e);
+    report_error(e);
   }
 }
 
 const root = createRoot(document.getElementById('root'));
 root.render(<React.StrictMode>
-  <App/>
+  <Main/>
 </React.StrictMode>);
 
 // Cli utilities

@@ -1,16 +1,8 @@
 import {useRef, useState} from 'react';
-import {checkPasswordWithSalt, decrypt, downloadAsFile, encrypt, hashPasswordWithSalt, randId, sha512} from '../util';
-import {
-  deserializeAlphabets,
-  deserializeSecrets,
-  deserializeServices,
-  deserializeSettings,
-  serializeAlphabets,
-  serializeSecrets,
-  serializeServices,
-  serializeSettings,
-} from '../serialize';
-import {externalStoreSettings, retrievePaste} from '../api';
+import {downloadAsFile, randId} from '../util/util';
+import {externalStoreSettings, retrievePaste} from '../util/api';
+import {exportAccount, importAccount} from "../util/export";
+import {report_error} from "../util/log";
 
 export default function Export({masterPassword, alphabets, services, secrets, settings, setSettings, onDataImport}) {
   const [text, setText] = useState('');
@@ -21,15 +13,7 @@ export default function Export({masterPassword, alphabets, services, secrets, se
 
   const exportData = (target) => {
     let date = (new Date()).toISOString();
-    let data = {
-      exportDate: date,
-      masterPasswordHash: hashPasswordWithSalt(masterPassword),
-      alphabets: encrypt(serializeAlphabets(alphabets), masterPassword),
-      services: encrypt(serializeServices(services), masterPassword),
-      secrets: encrypt(serializeSecrets(secrets), masterPassword),
-      settings: encrypt(serializeSettings(settings), masterPassword),
-    };
-    data = JSON.stringify(data, null, 2);
+    const data = exportAccount({masterPassword, alphabets, services, secrets, settings});
 
     if (target === 'file') {
       downloadAsFile(`settings-${date}.json`, data);
@@ -51,14 +35,14 @@ export default function Export({masterPassword, alphabets, services, secrets, se
         setExportIsError(false);
         setSettings({...settings, externalServiceUrl: url});
       }, e => {
-        console.error(e);
+        report_error(e);
         setExportResult('Unable to store setting in external service');
         setExportIsError(true);
       });
       return;
     }
 
-    console.error('Invalid target: ' + target);
+    report_error('Invalid target: ' + target);
   };
 
   const importData = async (target) => {
@@ -72,48 +56,12 @@ export default function Export({masterPassword, alphabets, services, secrets, se
         data = await retrievePaste(settings.externalServiceUrl);
       }
 
-      data = JSON.parse(data);
+      const [error, items] = importAccount(masterPassword, data);
 
-      if (!data) {
-        setExportResult('Invalid data');
+      if (error) {
+        setExportResult(items);
         setExportIsError(true);
         return;
-      }
-
-      let masterPasswordHash = data.masterPasswordHash;
-
-      if (masterPasswordHash.includes(':')) {
-        if (!checkPasswordWithSalt(masterPasswordHash, masterPassword)) {
-          setExportResult('Incorrect master password');
-          setExportIsError(true);
-          return;
-        }
-      } else {
-        // Compatibility with previous versions
-        if (masterPasswordHash !== sha512(masterPassword)) {
-          setExportResult('Incorrect master password');
-          setExportIsError(true);
-          return;
-        }
-      }
-
-      let items = {};
-
-      if (data.alphabets) {
-        let alphabets = decrypt(data.alphabets, masterPassword);
-        items.alphabets = deserializeAlphabets(alphabets);
-      }
-      if (data.services) {
-        let services = decrypt(data.services, masterPassword);
-        items.services = deserializeServices(services);
-      }
-      if (data.secrets) {
-        let services = decrypt(data.secrets, masterPassword);
-        items.secrets = deserializeSecrets(services);
-      }
-      if (data.settings) {
-        let settings = decrypt(data.settings, masterPassword);
-        items.settings = deserializeSettings(settings);
       }
 
       if (override) {
@@ -136,7 +84,7 @@ export default function Export({masterPassword, alphabets, services, secrets, se
       setExportResult('Importation cancelled');
       setExportIsError(false);
     } catch (e) {
-      console.error(e);
+      report_error(e);
       setExportResult('Error: ' + e.message);
       setExportIsError(true);
     }
@@ -220,30 +168,15 @@ function mergeSettings(a, b) {
   // alphabets, services, secrets, settings
 
   if (a.alphabets) {
-    res.alphabets = mergeLists(a.alphabets, b.alphabets, 'name', (a1, a2) => {
-      return a1.summary === a2.summary
-        && a1.chars === a2.chars;
-    });
+    res.alphabets = mergeLists(a.alphabets, b.alphabets, 'name');
   }
 
   if (a.services) {
-    res.services = mergeLists(a.services, b.services, 'name', (a1, a2) => {
-      return a1.code === a2.code
-        && a1.username === a2.username
-        && a1.alphabet === a2.alphabet
-        && a1.passLen === a2.passLen
-        && a1.allGroups === a2.allGroups
-        && a1.useRandomSeed === a2.useRandomSeed
-        && a1.masterCheck === a2.masterCheck;
-    });
+    res.services = mergeLists(a.services, b.services, 'name');
   }
 
   if (a.secrets) {
-    res.secrets = mergeLists(a.secrets, b.secrets, 'name', (a1, a2) => {
-      return a1.name === a2.name
-        && a1.contents === a2.contents
-        && a1.sha512 === a2.sha512;
-    });
+    res.secrets = mergeLists(a.secrets, b.secrets, 'name');
   }
 
   if (a.settings) {
@@ -260,37 +193,24 @@ function mergeSettings(a, b) {
   return res;
 }
 
-function mergeLists(a, b, keyProp, cmp) {
-  let byKey = new Map();
+function mergeLists(listA, listB, key, cmp) {
+  let map = new Map();
 
-  b.forEach(alpha => {
-    alpha.id = randId();
-    byKey.set(alpha[keyProp], alpha);
+  listB.forEach(B => {
+    B.id = randId();
+    map.set(B[key], B);
   });
 
-  a.forEach(alpha => {
-    alpha.id = randId();
+  listA.forEach(A => {
+    A.id = randId();
 
-    if (byKey.has(alpha[keyProp])) {
-      let other = byKey.get(alpha[keyProp]);
-
-      if (!cmp(alpha, other)) {
-        // Different value, cannot ignore
-        let i = 0;
-        let newProp = `${alpha[keyProp]} (new ${i})`;
-        while (byKey.has(newProp)) {
-          i++;
-          newProp = `${alpha[keyProp]} (new ${i})`;
-        }
-        alpha[keyProp] = newProp;
-        byKey.set(alpha[keyProp], alpha);
-      }
-    } else {
-      byKey.set(alpha[keyProp], alpha);
+    // If there is an item in A that is not in B, add it to the map
+    if (!map.has(A[key])) {
+      map.set(A[key], A);
     }
   });
 
-  return [...byKey.values()];
+  return [...map.values()];
 }
 
 function askUserForFile() {

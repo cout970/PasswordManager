@@ -1,0 +1,71 @@
+@use "./includes" as *;
+
+.page-settings {
+  padding: rem(20);
+  $long-width: clamp(rem(200), 100%, rem(500));
+
+  .settings-form {
+
+    .settings-row {
+      width: 100%;
+      display: flex;
+      flex-direction: row;
+      justify-content: start;
+      align-items: end;
+      gap: rem(10);
+      margin-bottom: rem(20);
+    }
+
+    .settings-row.no-sep {
+      margin-bottom: 0;
+    }
+
+    .sub-settings {
+      padding-top: rem(15);
+      margin-left: rem(9);
+      padding-left: rem(20);
+      border-left: rem(2) solid $dark2;
+      margin-bottom: rem(10);
+    }
+
+    .close > * {
+      display: none;
+    }
+
+    .close {
+      height: 0;
+      overflow: hidden;
+      margin-bottom: rem(10);
+    }
+
+    .long-input {
+      width: $long-width;
+    }
+
+    .qrcode-wrapper {
+      display: flex;
+      width: 100%;
+      justify-content: start;
+      margin-top: rem(20);
+
+      .qrcode-background {
+        background: white;
+        padding: 4px;
+        width: min-content;
+        margin: 4px;
+
+        svg {
+          display: block;
+        }
+      }
+    }
+  }
+
+  .update-master-password {
+    width: $long-width;
+
+    .master-password {
+      flex-grow: 1;
+    }
+  }
+}

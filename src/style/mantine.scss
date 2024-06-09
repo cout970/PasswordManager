@@ -1,0 +1,19 @@
+@use "./includes" as *;
+
+.mantine-Modal-root .mantine-Modal-title {
+  font-weight: bold;
+}
+
+.mantine-TextInput-input, .mantine-PasswordInput-input, .mantine-PasswordInput-innerInput {
+  &::placeholder {
+    color: $dark1;
+  }
+}
+
+.mantine-Button-root[disabled] .mantine-Button-inner {
+  color: $dark2;
+}
+
+.mantine-InputWrapper-label, .mantine-Checkbox-label {
+  font-size: 1rem;
+}

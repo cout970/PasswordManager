@@ -1,0 +1,83 @@
+@use "./includes" as *;
+
+.card {
+  position: relative;
+  background-color: $dark6;
+  border-radius: $md_radius;
+  padding: rem(10);
+
+  &.fake-card {
+    $base: mix($dark6, $dark7, 50%);
+    background-color: $base;
+
+    .card-img {
+      color: mix($base, $dark0, 75%);
+    }
+  }
+
+  &:hover {
+    background-color: $dark4;
+  }
+
+  &.invalid {
+    background-color: mix(red, $dark6, 40%);
+
+    &:hover {
+      background-color: mix(red, $dark4, 40%);
+    }
+  }
+
+  .card-name {
+    font-weight: bold;
+    cursor: pointer;
+
+    &:hover {
+      color: #11aaff;
+    }
+  }
+
+  .card-img {
+    width: 100%;
+    max-height: rem(200);
+    aspect-ratio: 1/1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: rem(20);
+    margin: auto;
+    cursor: pointer;
+
+    @media (max-width: 400px) {
+      max-height: rem(160);
+    }
+
+    img {
+      max-width: 100%;
+      max-height: 100%;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+    }
+  }
+
+  .card-config {
+    position: absolute;
+    bottom: rem(5);
+    right: rem(5);
+
+    button {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: rem(24);
+      height: rem(24);
+      line-height: 1;
+      border-radius: $md_radius;
+
+      &:hover {
+        background-color: $dark3;
+      }
+    }
+  }
+}
+

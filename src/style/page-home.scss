@@ -1,0 +1,211 @@
+@use "./includes" as *;
+
+.page-home {
+  max-width: 100vw;
+  padding: rem(20);
+
+  @media ($media-small-mobile) {
+    padding: rem(10);
+  }
+
+  .single-use {
+
+    @media ($media-small-mobile) {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+    }
+
+    .single-use-text {
+      white-space: nowrap;
+    }
+
+    .single-use-password, .single-use-input {
+      min-width: rem(200);
+    }
+  }
+
+  $file-tree-size: rem(48);
+
+  .grab-component {
+    width: $file-tree-size;
+    height: $file-tree-size;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: grab;
+    user-select: none;
+    flex-shrink: 0;
+
+    &.grabbing {
+      cursor: grabbing;
+    }
+
+    .grab-component-phantom {
+      outline: rem(1) solid $dark0;
+      position: absolute;
+      opacity: 0.25;
+      background: royalblue;
+
+      &.hidden {
+        display: none;
+      }
+    }
+  }
+
+  .file-tree-wrapper {
+    width: 100%;
+    min-height: 0 !important;
+    border: solid rem(1) $dark2;
+    border-radius: rem(2);
+  }
+
+  .file-tree {
+    width: 100%;
+    min-height: 0 !important;
+    font-size: 1.4rem;
+
+    &.grabbing-row .file-tree-line:hover {
+      &:nth-child(even) {
+        background-color: $dark6;
+      }
+
+      &:nth-child(odd) {
+        background-color: $dark8;
+      }
+    }
+  }
+
+  .file-tree-line {
+    width: 100%;
+    display: flex;
+    height: $file-tree-size;
+
+    .file-tree-line-btn {
+      flex-grow: 1;
+      display: flex;
+      padding: 0 rem(10);
+      color: $dark0;
+      cursor: pointer;
+      user-select: none;
+      border: none;
+      background: transparent;
+      max-width: calc(100% - $file-tree-size - $file-tree-size - rem(20));
+    }
+
+    &:nth-child(even) {
+      background-color: $dark5;
+
+      .back {
+        background-color: $dark5;
+      }
+    }
+
+    &:nth-child(odd) {
+      background-color: $dark6;
+
+      .back {
+        background-color: $dark6;
+      }
+    }
+
+    &:hover {
+      background-color: $dark3;
+
+      .back {
+        background-color: $dark3;
+      }
+    }
+
+    .line-prefix {
+      display: flex;
+      flex-flow: row nowrap;
+      align-items: center;
+      height: 100%;
+      $width: rem(1);
+
+      .line-prefix-vertical {
+        display: flex;
+        height: 100%;
+        flex-flow: column nowrap;
+
+        &.prev {
+          margin-right: rem(20);
+        }
+
+        .line-prefix-vertical-bottom {
+          background: $dark2;
+          width: $width;
+          flex-basis: 50%;
+
+          &.hidden {
+            opacity: 0;
+          }
+        }
+
+        .line-prefix-vertical-top {
+          background: $dark2;
+          width: $width;
+          flex-basis: 50%;
+
+          &.hidden {
+            opacity: 0;
+          }
+        }
+      }
+
+      .line-prefix-horizontal {
+        background: $dark2;
+        width: rem(20);
+        height: $width;
+      }
+
+      .line-prefix-folder {
+        position: relative;
+
+        > svg {
+          position: absolute;
+          top: 0;
+          left: rem(1);
+          transform: translate(-50%, -50%);
+        }
+
+        &.open {
+          > svg {
+            top: rem(1);
+            left: 0;
+          }
+        }
+
+        > .back {
+          position: absolute;
+          top: 0;
+          left: 0;
+          transform: translate(-50%, -50%);
+          width: 16px;
+          height: 16px;
+          border-radius: 16px;
+        }
+      }
+    }
+
+    .text-part {
+      margin-left: rem(2);
+      display: flex;
+      height: 100%;
+      align-items: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex-shrink: 1;
+
+      > svg {
+        flex-shrink: 0;
+      }
+    }
+
+    .config-btn {
+      height: $file-tree-size;
+    }
+  }
+}

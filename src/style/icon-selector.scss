@@ -1,0 +1,19 @@
+@use "./includes" as *;
+
+.icon-selector-tabs {
+  .icon-select-icon-list {
+    .icon-select-pagination {
+      .mantine-Pagination-dots {
+        display: none;
+      }
+    }
+  }
+}
+
+.icon-display-color {
+  border-radius: 0.4rem;
+}
+
+.icon-display-icon {
+  color: white;
+}

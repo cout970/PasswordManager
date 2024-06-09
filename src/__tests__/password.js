@@ -1,4 +1,4 @@
-import {generatePassword, sha512} from '../util';
+import {generatePassword, sha512} from '../util/util';
 
 test('Generates same passwords', () => {
   let alphabet1 = 'ABCDFGHIJKLMNOPQRSTUVWXYZabdfghijklmnopqrstuvwxyz1234567890';
