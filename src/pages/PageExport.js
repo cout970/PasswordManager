@@ -1,19 +1,18 @@
-import {Box, Button, Checkbox, Divider, Flex, Stack, Textarea, Title} from "@mantine/core";
+import {Box, Button, Checkbox, Divider, Flex, Stack, Textarea, Title, Text, rem, SimpleGrid} from "@mantine/core";
 import {t} from "../util/i18n";
-import React, {useRef, useState} from "react";
+import {useState} from "react";
 import {exportAccount, importAccount} from "../util/export";
-import {downloadAsFile, randId} from "../util/util";
+import {downloadAsFile} from "../util/util";
 import {externalStoreSettings, retrievePaste} from "../util/api";
 import {report_error} from "../util/log";
 import {useAccount} from "../util/react";
+import {showNotification} from "@mantine/notifications";
 
 export function PageExport() {
   const {account, updateAccount} = useAccount();
   const [text, setText] = useState('');
   const [override, setOverride] = useState(false);
-  const [exportResult, setExportResult] = useState('');
-  const [exportIsError, setExportIsError] = useState(false);
-  const auxInput = useRef();
+  const [changes, setChanges] = useState(null);
 
   const exportData = (target) => {
     let date = (new Date()).toISOString();
@@ -21,27 +20,23 @@ export function PageExport() {
 
     if (target === 'file') {
       downloadAsFile(`settings-${date}.json`, data);
-      setExportResult('Successfully exported settings');
-      setExportIsError(false);
+      showNotification({message: 'Settings exported to file', color: 'green'});
       return;
     }
 
     if (target === 'textarea') {
       setText(data);
-      setExportResult('Successfully exported settings');
-      setExportIsError(false);
+      showNotification({message: 'Settings exported to textarea', color: 'green'});
       return;
     }
 
     if (target === 'external') {
       externalStoreSettings(account.settings, data).then(url => {
-        setExportResult('Successfully exported settings');
-        setExportIsError(false);
         updateAccount({settings: {...account.settings, externalServiceUrl: url}});
+        showNotification({message: 'Settings exported to service', color: 'green'});
       }, e => {
         report_error(e);
-        setExportResult('Unable to store setting in external service');
-        setExportIsError(true);
+        showNotification({message: 'Unable to save settings in service', color: 'red'});
       });
       return;
     }
@@ -63,35 +58,34 @@ export function PageExport() {
       const [error, items] = importAccount(account.masterPassword, data);
 
       if (error) {
-        setExportResult(items);
-        setExportIsError(true);
+        setChanges(null);
+        showNotification({message: 'Error loading settings:' + items, color: 'red'});
         return;
       }
 
       if (override) {
-        if (window.confirm('Are you sure you want to override the current settings with the new settings?')) {
-          updateAccount({alphabets: items.alphabets, services: items.services, secrets: items.secrets, settings: items.settings});
-          setExportResult('Successfully imported settings');
-          setExportIsError(false);
-          return;
-        }
+        setChanges(items);
       } else {
-        if (window.confirm('Are you sure you want to merge the current settings with the new settings?')) {
-          updateAccount({alphabets: items.alphabets, services: items.services, secrets: items.secrets, settings: items.settings});
-          setExportResult('Successfully imported settings');
-          setExportIsError(false);
-          return;
-        }
+        setChanges(mergeSettings(items, account));
       }
-
-      setExportResult('Importation cancelled');
-      setExportIsError(false);
+      showNotification({message: 'Settings loaded, click import changes to finish', color: 'green'})
     } catch (e) {
       report_error(e);
-      setExportResult('Error: ' + e.message);
-      setExportIsError(true);
+      showNotification({message: 'Error loading settings', color: 'red'});
+      setChanges(null);
     }
   };
+
+  const finishImport = () => {
+    const msg = override
+      ? 'Are you sure you want to override the current settings with the new settings?'
+      : 'Are you sure you want to merge the current settings with the new settings?';
+
+    if (window.confirm(msg)) {
+      updateAccount(changes);
+      showNotification({message: 'Settings imported', color: 'green'});
+    }
+  }
 
   return <Stack className="page page-export">
     <Title order={1}>{t("Export")}</Title>
@@ -194,54 +188,127 @@ export function PageExport() {
       </Box>
     </Stack>
 
+    <SettingsDiff account={account} changes={changes} onAccept={finishImport}/>
   </Stack>
 }
 
-function mergeSettings(a, b) {
-  let res = {};
-  // alphabets, services, secrets, settings
+function SettingsDiff({account, changes, onAccept}) {
+  if (changes == null) return 'No settings to import';
 
-  if (a.alphabets) {
-    res.alphabets = mergeLists(a.alphabets, b.alphabets, 'name');
-  }
+  const diff = [];
 
-  if (a.services) {
-    res.services = mergeLists(a.services, b.services, 'name');
-  }
+  collectDiff(account.services, changes.services ?? account.services, diff);
+  collectDiff(account.secrets, changes.secrets ?? account.secrets, diff);
+  collectDiff(account.alphabets, changes.alphabets ?? account.alphabets, diff);
+  collectDiff(account.folders, changes.folders ?? account.folders, diff);
+  const oldSettings = Object.entries(account.settings)
+    .map(([key, value]) => ({id: key, type: 'setting', name: key, value: value}));
+  const newSettings = Object.entries(changes.settings ?? account.settings)
+    .map(([key, value]) => ({id: key, type: 'setting', name: key, value: value}));
+  collectDiff(oldSettings, newSettings, diff);
 
-  if (a.secrets) {
-    res.secrets = mergeLists(a.secrets, b.secrets, 'name');
-  }
+  diff.sort((a, b) => a.value.type === b.value.type
+    ? a.value.name.localeCompare(b.value.name)
+    : a.value.type.localeCompare(b.value.type)
+  );
 
-  if (a.settings) {
-    res.settings = {
-      ...b.settings,
-      defaultPasswordLength: a.settings.defaultPasswordLength,
-      defaultShowPassword: a.settings.defaultShowPassword,
-      defaultAllGroups: a.settings.defaultAllGroups,
-      defaultRandomSeed: a.settings.defaultRandomSeed,
-      darkTheme: a.settings.darkTheme,
-    };
-  }
+  if (diff.length === 0) return 'No changes in settings to import, already up to date.';
 
-  return res;
+  return <Box>
+    <Title>Changes</Title>
+    <Stack
+      spacing="0"
+      p={rem(10)}
+      style={{boder: "1px solid red"}}
+    >
+      {diff.map((item, index) => <DiffSummary key={index} item={item}/>)}
+    </Stack>
+    <Button onClick={() => onAccept()}>Import changes</Button>
+  </Box>;
 }
 
-function mergeLists(listA, listB, key) {
+function DiffSummary({item}) {
+  const diffTypes = {'add': 'New value', 'remove': 'Removed value', 'change': 'Changed value'};
+  const itemTypes = {
+    'setting': 'Setting',
+    'service': 'Service',
+    'secret': 'Secret',
+    'alphabet': 'Alphabet',
+    'folder': 'Folder'
+  };
+
+  const colors = {
+    'add': 'green',
+    'remove': 'red',
+    'change': 'blue'
+  }
+
+  return <SimpleGrid cols={5}>
+    <Text color={colors[item.type]}>{item.value.id}</Text>
+    <Text color={colors[item.type]}>{diffTypes[item.type]}</Text>
+    <Text color={colors[item.type]}>{itemTypes[item.value.type] ?? item.value.type}</Text>
+    <Text color={colors[item.type]}>{item.value.name}</Text>
+    <Text color={colors[item.type]}>{item.value.username || item.value.description || item.value.summary || '-'}</Text>
+  </SimpleGrid>;
+}
+
+function collectDiff(listA, listB, diff) {
+  const mapA = new Map();
+  listA.forEach(A => mapA.set(A.id, A));
+  const mapB = new Map();
+  listB.forEach(B => mapB.set(B.id, B));
+  const keys = new Set([...mapA.keys(), ...mapB.keys()]);
+
+  keys.forEach(key => {
+    const A = mapA.get(key);
+    const B = mapB.get(key);
+
+    if (!A) {
+      diff.push({type: 'add', value: B});
+    } else if (!B) {
+      diff.push({type: 'remove', value: A});
+    } else if (JSON.stringify(A) !== JSON.stringify(B)) {
+      diff.push({type: 'change', value: B});
+    }
+  })
+}
+
+function mergeSettings(items, account) {
+  let changes = {};
+
+  if (items.alphabets) {
+    changes.alphabets = mergeLists(items.alphabets, account.alphabets, 'id');
+  }
+
+  if (items.services) {
+    changes.services = mergeLists(items.services, account.services, 'id');
+  }
+
+  if (items.secrets) {
+    changes.secrets = mergeLists(items.secrets, account.secrets, 'id');
+  }
+
+  if (items.folders) {
+    changes.folders = mergeLists(items.folders, account.folders, 'id');
+  }
+
+  if (items.settings) {
+    changes.settings = {...account.settings, ...items.settings};
+  }
+
+  return changes;
+}
+
+function mergeLists(newValues, oldValues, key) {
   let map = new Map();
 
-  listB.forEach(B => {
-    B.id = randId();
+  oldValues.forEach(B => {
     map.set(B[key], B);
   });
 
-  listA.forEach(A => {
-    A.id = randId();
-
-    // If there is an item in A that is not in B, add it to the map
-    if (!map.has(A[key])) {
-      map.set(A[key], A);
-    }
+  // Override values with the same key
+  newValues.forEach(A => {
+    map.set(A[key], A);
   });
 
   return [...map.values()];

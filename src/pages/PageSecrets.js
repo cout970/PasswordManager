@@ -1,6 +1,6 @@
 import '../style/page-secrets.scss';
 import '../style/card.scss';
-import {Modal, SimpleGrid, Stack, Text, Textarea, Title, UnstyledButton} from '@mantine/core';
+import {Flex, Modal, rem, Stack, Text, Textarea, Title, UnstyledButton} from '@mantine/core';
 import React, {useMemo, useState} from 'react';
 import {IconPlus, IconSettings} from '@tabler/icons-react';
 import {copyToClipboard, decodeSecretContents, searchBy, sha512} from '../util/util';
@@ -12,6 +12,7 @@ import {NewSecretModal} from "../components/NewSecretModal";
 import {SecretSettingsModal} from "../components/SecretSettingsModal";
 import {IconDisplay} from "../components/IconSelector";
 import {removeDuplicates} from "../util/entities";
+import {scheduleAccountSave} from "../layout/Main";
 
 export function PageSecrets() {
   const {account, updateAccount} = useAccount();
@@ -35,16 +36,11 @@ export function PageSecrets() {
       removeDups={() => removeDuplicates(account, updateAccount, 'secrets')}
     />
 
-    <SimpleGrid
+    <Flex
       key="secrets"
       className="secrets"
-      cols={6}
-      breakpoints={[
-        {maxWidth: '62rem', cols: 3},
-        {maxWidth: '48rem', cols: 2},
-        {maxWidth: '36rem', cols: 1},
-      ]}
-      spacing={'md'}
+      wrap="wrap"
+      gap="md"
     >
       {visibleSecrets.map(s =>
         <SecretCard
@@ -57,7 +53,7 @@ export function PageSecrets() {
         ? <FakeSecretCard onClick={() => setOpenModal(true)}/>
         : ''
       }
-    </SimpleGrid>
+    </Flex>
 
     <NewSecretModal
       key="new"
@@ -85,6 +81,7 @@ function SecretCard({secret}) {
   return <Stack
     align="center"
     className={validated ? 'card' : 'card invalid'}
+    w={rem(180)}
   >
     <Text
       className="card-name"
@@ -137,6 +134,7 @@ function FakeSecretCard({onClick}) {
     align="center"
     className="card fake-card"
     onClick={onClick}
+    w={rem(180)}
   >
     <Text className="card-name">{t('Create secret')}</Text>
 
@@ -167,6 +165,10 @@ export function copySecretToClipboard(secret, account) {
     });
     return;
   }
+
+  secret.lastUse = (new Date()).getTime() / 1000;
+  secret.uses = Number.isNaN(secret.uses) ? 1 : secret.uses + 1;
+  scheduleAccountSave();
 
   copyToClipboard(contents)
     .then(

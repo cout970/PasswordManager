@@ -1,6 +1,6 @@
 import '../style/page-alphabets.scss';
 import '../style/card.scss';
-import {SimpleGrid, Stack, Text, Title, UnstyledButton} from '@mantine/core';
+import {Flex, rem, Stack, Text, Title, UnstyledButton} from '@mantine/core';
 import React, {useMemo, useState} from 'react';
 import {IconSettings} from '@tabler/icons-react';
 import {searchBy} from '../util/util';
@@ -34,16 +34,11 @@ export function PageAlphabets() {
       removeDups={() => removeDuplicates(account, updateAccount, 'alphabets')}
     />
 
-    <SimpleGrid
+    <Flex
       key="alphabets"
       className="alphabets"
-      cols={6}
-      breakpoints={[
-        {maxWidth: '62rem', cols: 3},
-        {maxWidth: '48rem', cols: 2},
-        {maxWidth: '36rem', cols: 1},
-      ]}
-      spacing={'md'}
+      wrap="wrap"
+      gap="md"
     >
       {visibleAlphabets.map(s =>
         <AlphabetCard
@@ -51,7 +46,7 @@ export function PageAlphabets() {
           alphabet={s}
         />,
       )}
-    </SimpleGrid>
+    </Flex>
 
     <NewAlphabetModal
       key="new"
@@ -67,6 +62,7 @@ function AlphabetCard({alphabet}) {
   return <Stack
     align="center"
     className='card'
+    w={rem(180)}
   >
     <Text
       className="card-name"

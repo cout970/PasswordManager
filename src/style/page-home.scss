@@ -25,6 +25,25 @@
     }
   }
 
+  .home-shortcut {
+    background: $dark5;
+    border-radius: $md_radius;
+    cursor: pointer;
+    width: rem(180);
+    height: rem(60);
+    padding: rem(12);
+
+    @media($media-mobile){
+      width: rem(150);
+      height: rem(50);
+      padding: rem(6);
+    }
+
+    &:hover {
+      background: $dark4;
+    }
+  }
+
   $file-tree-size: rem(48);
 
   .grab-component {

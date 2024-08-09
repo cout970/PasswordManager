@@ -12,17 +12,14 @@
 .main-navbar {
   --main-size: #{rem(96)};
   --icon-size: #{rem(64)};
+  --logo-pad: #{rem(10)};
   $main-size: var(--main-size);
   $icon-size: var(--icon-size);
-
-  @media ($media-small-mobile) {
-    --main-size: #{rem(48)};
-    --icon-size: #{rem(42)};
-  }
-
   width: $main-size;
 
   @media ($media-mobile) {
+    --main-size: #{rem(48)};
+    --icon-size: #{rem(42)};
     width: 100%;
     height: $main-size;
   }
@@ -55,17 +52,12 @@
     justify-content: center;
     height: $main-size;
     margin-bottom: rem(20);
-    padding: rem(10);
-    padding-top: rem(15);
+    padding: rem(15) rem(10) rem(10);
 
     @media ($media-mobile) {
       width: auto;
       height: $main-size;
       margin-bottom: 0;
-      margin-right: rem(20);
-    }
-
-    @media ($media-small-mobile) {
       padding: 0;
       margin-right: 0;
     }

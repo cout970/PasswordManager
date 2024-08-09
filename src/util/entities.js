@@ -11,6 +11,7 @@ import {getLastId} from "./storage";
 export function createAccount(masterPassword, name) {
   return {
     id: randId(),
+    type: 'account',
     masterPassword: masterPassword,
     alphabets: defaultAlphabets(),
     services: [],
@@ -31,6 +32,7 @@ export function createService(settings) {
 
   return {
     id: randId(),
+    type: 'service',
     name: 'Service #' + index,
     code: 'service-' + index,
     username: '',
@@ -41,6 +43,8 @@ export function createService(settings) {
     useRandomSeed: settings.defaultRandomSeed,
     masterCheck: '',
     folder: undefined,
+    lastUse: 0,
+    uses: 0,
   };
 }
 
@@ -57,6 +61,8 @@ export function validateService(initial) {
   if (!service.id) {
     service.id = randId();
   }
+
+  service.type = 'service';
 
   if (typeof service.name !== 'string') {
     let index = getLastId('service-index');
@@ -91,13 +97,20 @@ export function validateService(initial) {
     service.useRandomSeed = false;
   }
 
-  if (service.masterCheck) {
+  if (!service.masterCheck) {
     service.masterCheck = '';
+  }
+
+  if (!service.lastUse) {
+    service.lastUse = 0;
+  }
+
+  if (!service.uses) {
+    service.uses = 0;
   }
 
   return service;
 }
-
 
 /**
  * Creates a new secret
@@ -109,12 +122,15 @@ export function createSecret() {
 
   return {
     id: randId(),
+    type: 'secret',
     name: 'Secret #' + index,
     contents: '',
     decodedContents: null,
     description: '',
     icon: '',
     sha512: sha512(''),
+    lastUse: 0,
+    uses: 0,
   };
 }
 
@@ -131,6 +147,8 @@ export function validateSecret(initial) {
   if (!secret.id) {
     secret.id = randId();
   }
+
+  secret.type = 'secret';
 
   if (typeof secret.name !== 'string') {
     let index = getLastId('secret-index');
@@ -157,6 +175,14 @@ export function validateSecret(initial) {
     secret.folder = undefined;
   }
 
+  if (!secret.lastUse) {
+    secret.lastUse = 0;
+  }
+
+  if (!secret.uses) {
+    secret.uses = 0;
+  }
+
   return secret;
 }
 
@@ -168,9 +194,31 @@ export function validateSecret(initial) {
 export function createFolder() {
   return {
     id: randId(),
+    type: 'folder',
     name: 'New folder ' + getLastId('folder-index'),
     children: []
   };
+}
+
+export function validateFolder(initial) {
+  /** @type {Folder} */
+  let folder = initial || {};
+
+  if (!folder.id) {
+    folder.id = randId();
+  }
+
+  folder.type = 'folder';
+
+  if (typeof folder.name !== 'string') {
+    folder.name = 'New folder ' + getLastId('folder-index');
+  }
+
+  if (!folder.children || !Array.isArray(folder.children)) {
+    folder.children = [];
+  }
+
+  return folder;
 }
 
 /**
@@ -242,7 +290,7 @@ export function defaultSettings(initial) {
   }
 
   if (typeof settings.externalServiceUpdate !== 'boolean') {
-    settings.externalServiceUpdate = false;
+    settings.externalServiceUpdate = true;
   }
 
   return settings;
@@ -259,12 +307,48 @@ export function createAlphabet() {
 
   return {
     id: randId(),
+    type: 'alphabet',
     code: 'alphabet-' + index,
     name: 'Alphabet #' + index,
     icon: '',
     summary: '',
     chars: '',
   };
+}
+
+export function validateAlphabet(initial) {
+  /** @type {Alphabet} */
+  let alphabet = initial || {};
+
+  if (!alphabet.id) {
+    alphabet.id = randId();
+  }
+
+  alphabet.type = 'alphabet';
+
+  if (typeof alphabet.code !== 'string') {
+    let index = getLastId('alphabet-index');
+    alphabet.code = 'alphabet-' + index;
+  }
+
+  if (typeof alphabet.name !== 'string') {
+    let index = getLastId('alphabet-index');
+    alphabet.name = 'Alphabet #' + index;
+  }
+
+  if (typeof alphabet.summary !== 'string') {
+    alphabet.summary = '';
+  }
+
+  if (typeof alphabet.chars !== 'string') {
+    alphabet.chars = '';
+  }
+
+  if (alphabet.folder !== undefined && typeof alphabet.folder !== 'string') {
+    alphabet.folder = undefined;
+  }
+
+  return alphabet;
 }
 
 /**
@@ -276,6 +360,7 @@ export function defaultAlphabets() {
   return [
     {
       id: randId(),
+      type: 'alphabet',
       code: 'simple',
       name: 'Letters and numbers',
       summary: 'A-Z a-z 0-9',
@@ -284,6 +369,7 @@ export function defaultAlphabets() {
     },
     {
       id: randId(),
+      type: 'alphabet',
       code: 'default',
       name: 'Default',
       summary: 'Letters, digits and special characters',
@@ -293,6 +379,7 @@ export function defaultAlphabets() {
     },
     {
       id: randId(),
+      type: 'alphabet',
       code: 'legacy',
       name: 'Legacy 1',
       summary: 'A-Z a-z 0-9 without E/e',
@@ -301,6 +388,7 @@ export function defaultAlphabets() {
     },
     {
       id: randId(),
+      type: 'alphabet',
       code: 'bug',
       name: 'Legacy 2',
       summary: 'Default plus ñÑ€¡¿ç and broken utf-8 to windows-1252 conversion',
@@ -310,6 +398,7 @@ export function defaultAlphabets() {
     },
     {
       id: randId(),
+      type: 'alphabet',
       code: 'crazy',
       name: 'Unicode madness',
       summary: 'Uncommon unicode characters',
@@ -319,6 +408,7 @@ export function defaultAlphabets() {
     },
     {
       id: randId(),
+      type: 'alphabet',
       code: 'digits',
       name: 'Only digits',
       summary: '0-9',
@@ -332,23 +422,26 @@ export function defaultFolders() {
   return [
     {
       id: 'default-services-folder',
+      type: 'folder',
       name: 'Services',
       children: [],
     },
     {
       id: 'default-secrets-folder',
+      type: 'folder',
       name: 'Secrets',
       children: [],
     },
     {
       id: 'default-alphabets-folder',
+      type: 'folder',
       name: 'Alphabets',
       children: [],
     },
   ];
 }
 
-export function validateFolders(account) {
+export function validateFolderLinks(account) {
   // Sanitize folder ids
   const validFolderIds = recursiveCollect(account.folders, f => [f.id, f.children], []);
 

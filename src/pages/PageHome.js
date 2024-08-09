@@ -7,6 +7,8 @@ import {SingleUseGenerator} from "../components/SingleUseGenerator";
 import {FileTree} from "../layout/FileTree";
 import {Shortcuts} from "../layout/Shortcuts";
 import {NewFolderModal} from "../components/NewFolderModal";
+import {useAccount} from "../util/react";
+import {RecentShortcuts} from "../components/RecentShortcuts";
 
 /**
  * Main page of the app
@@ -17,6 +19,7 @@ import {NewFolderModal} from "../components/NewFolderModal";
 export function PageHome() {
   const [searchFilter, setSearchFilter] = useState('');
   const [openModal, setOpenModal] = useState(false);
+  const {account} = useAccount();
 
   return <Stack className="page page-home">
     <Flex justify="space-between" align="center" wrap="wrap" gap="md">
@@ -25,8 +28,10 @@ export function PageHome() {
         style={{fontFamily: "PressStart2P"}}
       >{t("PASSWORD MANAGER")}</Title>
 
-      <SingleUseGenerator/>
+      {account.settings.enableSingleUse ? <SingleUseGenerator/> : ''}
     </Flex>
+
+    {account.settings.enableRecentShortcuts ? <RecentShortcuts/> : ''}
 
     <Divider my="md"/>
 

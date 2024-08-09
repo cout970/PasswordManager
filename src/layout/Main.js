@@ -31,6 +31,7 @@ export default function Main() {
   );
 
   useEffect(() => {
+    window.accountManager = accountManager;
     let account = accountManager.getCurrentAccount();
 
     if (account == null && page !== 'init') {
@@ -69,4 +70,11 @@ export default function Main() {
       </AccountContext.Provider>
     </NavigationContext.Provider>
   </MantineProvider>;
+}
+
+export function scheduleAccountSave() {
+  setTimeout(() => {
+    if (!window.accountManager) return;
+    window.accountManager.save();
+  }, 1000);
 }

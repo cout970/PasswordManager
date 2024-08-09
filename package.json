@@ -15,7 +15,7 @@
     "@testing-library/jest-dom": "^5.16.4",
     "@testing-library/react": "^13.3.0",
     "@testing-library/user-event": "^14.2.5",
-    "crypto-js": "^4.1.1",
+    "crypto-js": "^4.2.0",
     "dayjs": "^1.11.7",
     "js-sha512": "^0.8.0",
     "random-seed": "^0.3.0",

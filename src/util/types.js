@@ -1,6 +1,7 @@
 /**
  * @typedef Account
  * @property {string} id
+ * @property {string} type
  * @property {string} masterPassword
  * @property {?string} masterPasswordHash
  * @property {Alphabet[]} alphabets
@@ -13,6 +14,7 @@
 /**
  * @typedef Alphabet
  * @property {string} id
+ * @property {string} type
  * @property {string} code
  * @property {string} name
  * @property {string} summary
@@ -24,6 +26,7 @@
 /**
  * @typedef Service
  * @property {string} id
+ * @property {string} type
  * @property {string} name
  * @property {string} code
  * @property {string} username
@@ -34,22 +37,28 @@
  * @property {boolean} useRandomSeed
  * @property {string} masterCheck
  * @property {?string} folder
+ * @property {?number} lastUse
+ * @property {?number} uses
  */
 
 /**
  * @typedef Secret
  * @property {string} id
+ * @property {string} type
  * @property {string} name
  * @property {string} contents
  * @property {?string} decodedContents
  * @property {?string} description
  * @property {string} sha512
  * @property {?string} folder
+ * @property {?number} lastUse
+ * @property {?number} uses
  */
 
 /**
  * @typedef Folder
  * @property {string} id
+ * @property {string} type
  * @property {string} name
  * @property {Folder[]} children
  */
@@ -67,6 +76,8 @@
  * @property {boolean} defaultAlphabet
  * @property {boolean} defaultRandomSeed
  * @property {boolean} darkTheme
+ * @property {boolean} enableSingleUse
+ * @property {boolean} enableRecentShortcuts
  * @property {boolean} externalServiceLoad
  * @property {boolean} externalServiceStore
  * @property {string} externalServiceUrl

@@ -4,7 +4,7 @@ import {t} from "../util/i18n";
 import {FolderSettingsForm} from "../forms/FolderSettingsForm";
 import {removeFolder, replaceFolder} from "../util/folder";
 import React from "react";
-import {validateFolders} from "../util/entities";
+import {validateFolderLinks} from "../util/entities";
 
 export function FolderSettingsModal({value, open, onClose, onSubmit}) {
   const {updateAccount, account} = useAccount();
@@ -28,7 +28,7 @@ export function FolderSettingsModal({value, open, onClose, onSubmit}) {
       }}
       remove={() => {
         let newFolders = removeFolder(account.folders, value);
-        updateAccount(validateFolders({...account, folders: newFolders}));
+        updateAccount(validateFolderLinks({...account, folders: newFolders}));
         onClose();
       }}
       discard={onClose}

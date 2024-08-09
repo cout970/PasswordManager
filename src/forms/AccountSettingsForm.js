@@ -118,6 +118,22 @@ export function AccountSettingsForm({settings, setSettings, loadSettings}) {
           onChange={e => update({defaultRandomSeed: e.target.checked})}
         />
       </SettingRow>
+
+      <SettingRow key="enableSingleUse">
+        <Checkbox
+          label={t("Show single-use form")}
+          checked={settings.enableSingleUse}
+          onChange={e => update({enableSingleUse: e.target.checked})}
+        />
+      </SettingRow>
+
+      <SettingRow key="enableRecentShortcuts">
+        <Checkbox
+          label={t("Show recently used services/secrets as shortcuts")}
+          checked={settings.enableRecentShortcuts}
+          onChange={e => update({enableRecentShortcuts: e.target.checked})}
+        />
+      </SettingRow>
     </Stack>
 
     <SettingRow key="externalServiceLoad" className="no-sep">

@@ -9,6 +9,14 @@ export function deserializeServices(json) {
   return json ? JSON.parse(json) : null;
 }
 
+export function serializeFolders(folders) {
+  return folders ? JSON.stringify(folders) : null;
+}
+
+export function deserializeFolders(json) {
+  return json ? JSON.parse(json) : null;
+}
+
 export function serializeAlphabets(alphabets) {
   if (!alphabets) return null;
 

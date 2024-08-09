@@ -1,7 +1,7 @@
 import '../style/page-services.scss';
 import '../style/card.scss';
 import React, {useMemo, useState} from 'react';
-import {SimpleGrid, Stack, Text, Title, UnstyledButton,} from '@mantine/core';
+import {Flex, rem, Stack, Text, Title, UnstyledButton} from '@mantine/core';
 import {IconPlus, IconSettings,} from '@tabler/icons-react';
 import {copyToClipboard, getServicePassword, searchBy} from '../util/util';
 import {notifications} from '@mantine/notifications';
@@ -12,6 +12,7 @@ import {NewServiceModal} from "../components/NewServiceModal";
 import {ServiceSettingsModal} from "../components/ServiceSettingsModal";
 import {IconDisplay} from "../components/IconSelector";
 import {removeDuplicates} from "../util/entities";
+import {scheduleAccountSave} from "../layout/Main";
 
 export function PageServices() {
   const {account, updateAccount} = useAccount();
@@ -35,16 +36,11 @@ export function PageServices() {
       removeDups={() => removeDuplicates(account, updateAccount, 'services')}
     />
 
-    <SimpleGrid
+    <Flex
       key="services"
       className="services"
-      cols={6}
-      breakpoints={[
-        {maxWidth: '62rem', cols: 3},
-        {maxWidth: '48rem', cols: 2},
-        {maxWidth: '36rem', cols: 1},
-      ]}
-      spacing={'md'}
+      wrap="wrap"
+      gap="md"
     >
       {visibleServices.map(s =>
         <ServiceCard
@@ -57,7 +53,7 @@ export function PageServices() {
         ? <FakeServiceCard onClick={() => setOpenModal(true)}/>
         : ''
       }
-    </SimpleGrid>
+    </Flex>
 
     {searchFilter !== '' && visibleServices.length === 0
       ? <Text className="no-results">{t('No results')}</Text>
@@ -93,6 +89,7 @@ function ServiceCard({service}) {
     align="center"
     className={validated ? 'card' : 'card invalid'}
     data-seed={seed}
+    w={rem(180)}
   >
     <Text
       className="card-name"
@@ -139,6 +136,7 @@ function FakeServiceCard({onClick}) {
     align="center"
     className="card fake-card"
     onClick={onClick}
+    w={rem(180)}
   >
     <Text className="card-name">{t("Create service")}</Text>
 
@@ -174,6 +172,10 @@ export function copyServicePasswordToClipboard(service, account) {
     });
     return;
   }
+
+  service.lastUse = (new Date()).getTime() / 1000;
+  service.uses = Number.isNaN(service.uses) ? 1 : service.uses + 1;
+  scheduleAccountSave();
 
   copyToClipboard(password)
     .then(

@@ -1,7 +1,7 @@
 import {checkPasswordWithSalt, decrypt, encrypt, hashPasswordWithSalt, sha512} from "./util";
 import {
-  deserializeAlphabets, deserializeSecrets, deserializeServices, deserializeSettings,
-  serializeAlphabets,
+  deserializeAlphabets, deserializeFolders, deserializeSecrets, deserializeServices, deserializeSettings,
+  serializeAlphabets, serializeFolders,
   serializeSecrets,
   serializeServices,
   serializeSettings
@@ -10,6 +10,7 @@ import {t} from "./i18n";
 import {retrievePaste} from "./api";
 import {notifications} from "@mantine/notifications";
 import {report_error} from "./log";
+import {validateAlphabet, validateFolder, validateSecret, validateService} from "./entities";
 
 /**
  * Create a JSON string containing all the data of the account.
@@ -25,6 +26,7 @@ export function exportAccount(account) {
     alphabets: encrypt(serializeAlphabets(account.alphabets), account.masterPassword),
     services: encrypt(serializeServices(account.services), account.masterPassword),
     secrets: encrypt(serializeSecrets(account.secrets), account.masterPassword),
+    folders: encrypt(serializeFolders(account.folders), account.masterPassword),
     settings: encrypt(serializeSettings(account.settings), account.masterPassword),
   };
   data = JSON.stringify(data, null, 2);
@@ -54,15 +56,19 @@ export function importAccount(masterPassword, rawData) {
 
   if (data.alphabets) {
     let alphabets = decrypt(data.alphabets, masterPassword);
-    account.alphabets = deserializeAlphabets(alphabets);
+    account.alphabets = deserializeAlphabets(alphabets).map(validateAlphabet);
   }
   if (data.services) {
     let services = decrypt(data.services, masterPassword);
-    account.services = deserializeServices(services);
+    account.services = deserializeServices(services).map(validateService);
   }
   if (data.secrets) {
     let services = decrypt(data.secrets, masterPassword);
-    account.secrets = deserializeSecrets(services);
+    account.secrets = deserializeSecrets(services).map(validateSecret);
+  }
+  if (data.folders) {
+    let folders = decrypt(data.folders, masterPassword);
+    account.folders = deserializeFolders(folders).map(validateFolder);
   }
   if (data.settings) {
     let settings = decrypt(data.settings, masterPassword);

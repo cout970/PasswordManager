@@ -7,8 +7,8 @@ import {
   saveAlphabets, saveMasterPassword, saveSecrets, saveServices, saveSettings, loadFolders, saveFolders
 } from "./storage";
 import {report_error} from "./log";
-import {hashPasswordWithSalt, recursiveCollect} from "./util";
-import {validateFolders} from "./entities";
+import {hashPasswordWithSalt} from "./util";
+import {validateAlphabet, validateFolder, validateFolderLinks, validateSecret, validateService} from "./entities";
 
 export class AccountManager {
   allAccounts = [];
@@ -43,14 +43,14 @@ export class AccountManager {
         id: id,
         masterPassword: loadMasterPassword(storage),
         masterPasswordHash: storage.getItem('master-hash') || null,
-        alphabets: loadAlphabets(storage),
-        services: loadServices(storage),
-        secrets: loadSecrets(storage),
+        alphabets: loadAlphabets(storage).map(validateAlphabet),
+        services: loadServices(storage).map(validateService),
+        secrets: loadSecrets(storage).map(validateSecret),
+        folders: loadFolders(storage).map(validateFolder),
         settings: loadSettings(storage),
-        folders: loadFolders(storage),
       };
 
-      account = validateFolders(account);
+      account = validateFolderLinks(account);
 
       this.allAccounts.push(account);
     });
